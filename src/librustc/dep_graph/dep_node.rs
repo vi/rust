@@ -446,6 +446,7 @@ define_dep_nodes!( <'tcx>
     [] BorrowCheck(DefId),
     [] MirBorrowCheck(DefId),
     [] UnsafetyViolations(DefId),
+    [] MoveCheck(DefId),
 
     [] RvalueCheck(DefId),
     [] Reachability,
@@ -477,6 +478,7 @@ define_dep_nodes!( <'tcx>
     [] IsForeignItem(DefId),
     [] TypeParamPredicates { item_id: DefId, param_id: DefId },
     [] SizedConstraint(DefId),
+    [] MoveConstraint(DefId),
     [] DtorckConstraint(DefId),
     [] AdtDestructor(DefId),
     [] AssociatedItemDefIds(DefId),
@@ -493,6 +495,7 @@ define_dep_nodes!( <'tcx>
     [anon] IsCopy,
     [anon] IsSized,
     [anon] IsFreeze,
+    [anon] IsMove,
     [anon] NeedsDrop,
     [anon] Layout,
 

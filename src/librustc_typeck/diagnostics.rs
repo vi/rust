@@ -1855,11 +1855,11 @@ unsafe impl !Clone for Foo { }
 This will compile:
 
 ```
-#![feature(optin_builtin_traits)]
+#![feature(optin_builtin_traits, immovable_types)]
 
 struct Foo;
 
-trait Enterprise {}
+trait Enterprise: ?std::marker::Move {}
 
 impl Enterprise for .. { }
 
@@ -4677,4 +4677,5 @@ register_diagnostics! {
     E0592, // duplicate definitions with name `{}`
 //  E0613, // Removed (merged with E0609)
     E0627, // yield statement outside of generator literal
+    E0638, // explicit impls for the `Move` trait are not permitted
 }

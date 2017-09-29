@@ -41,6 +41,16 @@ use hash::Hasher;
 #[stable(feature = "rust1", since = "1.0.0")]
 #[lang = "send"]
 #[rustc_on_unimplemented = "`{Self}` cannot be sent between threads safely"]
+#[cfg(not(stage0))]
+pub unsafe trait Send: ?Move {
+    // empty.
+}
+
+/// docs
+#[stable(feature = "rust1", since = "1.0.0")]
+#[lang = "send"]
+#[rustc_on_unimplemented = "`{Self}` cannot be sent between threads safely"]
+#[cfg(stage0)]
 pub unsafe trait Send {
     // empty.
 }
@@ -48,10 +58,19 @@ pub unsafe trait Send {
 #[stable(feature = "rust1", since = "1.0.0")]
 unsafe impl Send for .. { }
 
+#[cfg(stage0)]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<T: ?Sized> !Send for *const T { }
+#[cfg(stage0)]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<T: ?Sized> !Send for *mut T { }
+
+#[cfg(not(stage0))]
+#[stable(feature = "rust1", since = "1.0.0")]
+impl<T: ?Sized+?Move> !Send for *const T { }
+#[cfg(not(stage0))]
+#[stable(feature = "rust1", since = "1.0.0")]
+impl<T: ?Sized+?Move> !Send for *mut T { }
 
 /// Types with a constant size known at compile time.
 ///
@@ -90,9 +109,35 @@ impl<T: ?Sized> !Send for *mut T { }
 #[lang = "sized"]
 #[rustc_on_unimplemented = "`{Self}` does not have a constant size known at compile-time"]
 #[fundamental] // for Default, for example, which requires that `[T]: !Default` be evaluatable
+#[cfg(not(stage0))]
+pub trait Sized: ?Move {
+    // Empty.
+}
+
+/// docs
+#[stable(feature = "rust1", since = "1.0.0")]
+#[lang = "sized"]
+#[rustc_on_unimplemented = "`{Self}` does not have a constant size known at compile-time"]
+#[fundamental] // for Default, for example, which requires that `[T]: !Default` be evaluatable
+#[cfg(stage0)]
 pub trait Sized {
     // Empty.
 }
+
+/// Types that can be moved after being borrowed.
+#[cfg(not(stage0))]
+#[lang = "move"]
+#[unstable(feature = "immovable_types", issue = "0")]
+pub unsafe trait Move: ?Move {
+    // Empty.
+}
+
+/// A zero-sized struct which is immovable.
+#[cfg(not(stage0))]
+#[lang = "immovable"]
+#[unstable(feature = "immovable_types", issue = "0")]
+#[allow(missing_debug_implementations)]
+pub struct Immovable;
 
 /// Types that can be "unsized" to a dynamically-sized type.
 ///
@@ -344,6 +389,16 @@ pub trait Copy : Clone {
 #[stable(feature = "rust1", since = "1.0.0")]
 #[lang = "sync"]
 #[rustc_on_unimplemented = "`{Self}` cannot be shared between threads safely"]
+#[cfg(not(stage0))]
+pub unsafe trait Sync: ?Move {
+    // Empty
+}
+
+/// docs
+#[stable(feature = "rust1", since = "1.0.0")]
+#[lang = "sync"]
+#[rustc_on_unimplemented = "`{Self}` cannot be shared between threads safely"]
+#[cfg(stage0)]
 pub unsafe trait Sync {
     // Empty
 }
@@ -351,10 +406,19 @@ pub unsafe trait Sync {
 #[stable(feature = "rust1", since = "1.0.0")]
 unsafe impl Sync for .. { }
 
+#[cfg(stage0)]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<T: ?Sized> !Sync for *const T { }
+#[cfg(stage0)]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<T: ?Sized> !Sync for *mut T { }
+
+#[cfg(not(stage0))]
+#[stable(feature = "rust1", since = "1.0.0")]
+impl<T: ?Sized+?Move> !Sync for *const T { }
+#[cfg(not(stage0))]
+#[stable(feature = "rust1", since = "1.0.0")]
+impl<T: ?Sized+?Move> !Sync for *mut T { }
 
 macro_rules! impls{
     ($t: ident) => (
@@ -542,6 +606,13 @@ macro_rules! impls{
 /// as not to indicate ownership.
 ///
 /// [drop check]: ../../nomicon/dropck.html
+#[cfg(not(stage0))]
+#[lang = "phantom_data"]
+#[stable(feature = "rust1", since = "1.0.0")]
+pub struct PhantomData<T:?Sized+?Move>;
+
+/// docs
+#[cfg(stage0)]
 #[lang = "phantom_data"]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct PhantomData<T:?Sized>;
@@ -560,6 +631,11 @@ mod impls {
 /// This affects, for example, whether a `static` of that type is
 /// placed in read-only static memory or writable static memory.
 #[lang = "freeze"]
+#[cfg(not(stage0))]
+unsafe trait Freeze: ?Move {}
+
+#[lang = "freeze"]
+#[cfg(stage0)]
 unsafe trait Freeze {}
 
 unsafe impl Freeze for .. {}
