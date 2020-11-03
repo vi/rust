@@ -52,7 +52,7 @@ LL |     let A(s) = *a;
    |           -    ^^ help: consider borrowing here: `&*a`
    |           |
    |           data moved here
-   |           move occurs because `s` has type `std::string::String`, which does not implement the `Copy` trait
+   |           move occurs because `s` has type `String`, which does not implement the `Copy` trait
 
 error[E0509]: cannot move out of type `D`, which implements the `Drop` trait
   --> $DIR/move-errors.rs:44:19
@@ -61,7 +61,7 @@ LL |     let C(D(s)) = c;
    |             -     ^ cannot move out of here
    |             |
    |             data moved here
-   |             move occurs because `s` has type `std::string::String`, which does not implement the `Copy` trait
+   |             move occurs because `s` has type `String`, which does not implement the `Copy` trait
 
 error[E0507]: cannot move out of `*a` which is behind a shared reference
   --> $DIR/move-errors.rs:51:9
@@ -83,13 +83,7 @@ LL |         B::U(d) => (),
 LL |         B::V(s) => (),
    |              - ...and here
    |
-note: move occurs because these variables have types that don't implement the `Copy` trait
-  --> $DIR/move-errors.rs:76:14
-   |
-LL |         B::U(d) => (),
-   |              ^
-LL |         B::V(s) => (),
-   |              ^
+   = note: move occurs because these variables have types that don't implement the `Copy` trait
 
 error[E0509]: cannot move out of type `D`, which implements the `Drop` trait
   --> $DIR/move-errors.rs:83:11
@@ -101,7 +95,7 @@ LL |         B::U(D(s)) => (),
    |                -
    |                |
    |                data moved here
-   |                move occurs because `s` has type `std::string::String`, which does not implement the `Copy` trait
+   |                move occurs because `s` has type `String`, which does not implement the `Copy` trait
 
 error[E0509]: cannot move out of type `D`, which implements the `Drop` trait
   --> $DIR/move-errors.rs:92:11
@@ -113,7 +107,7 @@ LL |         (D(s), &t) => (),
    |            -
    |            |
    |            data moved here
-   |            move occurs because `s` has type `std::string::String`, which does not implement the `Copy` trait
+   |            move occurs because `s` has type `String`, which does not implement the `Copy` trait
 
 error[E0507]: cannot move out of `*x.1` which is behind a shared reference
   --> $DIR/move-errors.rs:92:11
@@ -125,7 +119,7 @@ LL |         (D(s), &t) => (),
    |                 -
    |                 |
    |                 data moved here
-   |                 move occurs because `t` has type `std::string::String`, which does not implement the `Copy` trait
+   |                 move occurs because `t` has type `String`, which does not implement the `Copy` trait
 
 error[E0509]: cannot move out of type `F`, which implements the `Drop` trait
   --> $DIR/move-errors.rs:102:11
@@ -138,11 +132,7 @@ LL |         F(s, mut t) => (),
    |           |
    |           data moved here
    |
-note: move occurs because these variables have types that don't implement the `Copy` trait
-  --> $DIR/move-errors.rs:104:11
-   |
-LL |         F(s, mut t) => (),
-   |           ^  ^^^^^
+   = note: move occurs because these variables have types that don't implement the `Copy` trait
 
 error[E0507]: cannot move out of `x.0` which is behind a shared reference
   --> $DIR/move-errors.rs:110:11
@@ -154,7 +144,7 @@ LL |         Ok(s) | Err(s) => (),
    |            -
    |            |
    |            data moved here
-   |            move occurs because `s` has type `std::string::String`, which does not implement the `Copy` trait
+   |            move occurs because `s` has type `String`, which does not implement the `Copy` trait
 
 error: aborting due to 14 previous errors
 

@@ -1,93 +1,100 @@
 #![feature(rustc_private)]
 
-extern crate syntax;
-extern crate rustc;
-extern crate rustc_codegen_utils;
-#[macro_use]
+extern crate rustc_codegen_ssa;
+extern crate rustc_errors;
+extern crate rustc_middle;
 extern crate rustc_data_structures;
+extern crate rustc_driver;
+extern crate rustc_hir;
+extern crate rustc_session;
+extern crate rustc_span;
+extern crate rustc_symbol_mangling;
 extern crate rustc_target;
 
-use std::any::Any;
-use std::sync::{Arc, mpsc};
-use std::path::Path;
-use syntax::symbol::Symbol;
-use rustc::session::Session;
-use rustc::session::config::OutputFilenames;
-use rustc::ty::TyCtxt;
-use rustc::ty::query::Providers;
-use rustc::middle::cstore::{EncodedMetadata, MetadataLoader};
-use rustc::dep_graph::DepGraph;
-use rustc::util::common::ErrorReported;
-use rustc_codegen_utils::codegen_backend::CodegenBackend;
+use rustc_codegen_ssa::back::linker::LinkerInfo;
+use rustc_codegen_ssa::traits::CodegenBackend;
+use rustc_codegen_ssa::{CodegenResults, CrateInfo};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::sync::MetadataRef;
-use rustc_data_structures::owning_ref::OwningRef;
+use rustc_errors::ErrorReported;
+use rustc_middle::dep_graph::DepGraph;
+use rustc_middle::dep_graph::{WorkProduct, WorkProductId};
+use rustc_middle::middle::cstore::{EncodedMetadata, MetadataLoader, MetadataLoaderDyn};
+use rustc_middle::ty::query::Providers;
+use rustc_middle::ty::TyCtxt;
+use rustc_session::config::OutputFilenames;
+use rustc_session::Session;
 use rustc_target::spec::Target;
+use std::any::Any;
+use std::path::Path;
 
 pub struct NoLlvmMetadataLoader;
 
 impl MetadataLoader for NoLlvmMetadataLoader {
     fn get_rlib_metadata(&self, _: &Target, filename: &Path) -> Result<MetadataRef, String> {
-        let buf = std::fs::read(filename).map_err(|e| format!("metadata file open err: {:?}", e))?;
-        let buf: OwningRef<Vec<u8>, [u8]> = OwningRef::new(buf);
-        Ok(rustc_erase_owner!(buf.map_owner_box()))
+        unreachable!("some_crate.rs shouldn't depend on any external crates");
     }
 
     fn get_dylib_metadata(&self, target: &Target, filename: &Path) -> Result<MetadataRef, String> {
-        self.get_rlib_metadata(target, filename)
+        unreachable!("some_crate.rs shouldn't depend on any external crates");
     }
 }
 
 struct TheBackend;
 
 impl CodegenBackend for TheBackend {
-    fn metadata_loader(&self) -> Box<MetadataLoader + Sync> {
+    fn metadata_loader(&self) -> Box<MetadataLoaderDyn> {
         Box::new(NoLlvmMetadataLoader)
     }
 
-    fn provide(&self, providers: &mut Providers) {
-        rustc_codegen_utils::symbol_names::provide(providers);
-
-        providers.target_features_whitelist = |tcx, _cnum| {
-            tcx.arena.alloc(Default::default()) // Just a dummy
-        };
-        providers.is_reachable_non_generic = |_tcx, _defid| true;
-        providers.exported_symbols = |_tcx, _crate| Arc::new(Vec::new());
-    }
-
-    fn provide_extern(&self, providers: &mut Providers) {
-        providers.is_reachable_non_generic = |_tcx, _defid| true;
-    }
+    fn provide(&self, providers: &mut Providers) {}
+    fn provide_extern(&self, providers: &mut Providers) {}
 
     fn codegen_crate<'a, 'tcx>(
         &self,
         tcx: TyCtxt<'tcx>,
-        _metadata: EncodedMetadata,
+        metadata: EncodedMetadata,
         _need_metadata_module: bool,
-        _rx: mpsc::Receiver<Box<Any + Send>>
-    ) -> Box<Any> {
-        use rustc::hir::def_id::LOCAL_CRATE;
+    ) -> Box<dyn Any> {
+        use rustc_hir::def_id::LOCAL_CRATE;
 
-        Box::new(tcx.crate_name(LOCAL_CRATE) as Symbol)
+        Box::new(CodegenResults {
+            crate_name: tcx.crate_name(LOCAL_CRATE),
+            modules: vec![],
+            allocator_module: None,
+            metadata_module: None,
+            metadata,
+            windows_subsystem: None,
+            linker_info: LinkerInfo::new(tcx),
+            crate_info: CrateInfo::new(tcx),
+        })
     }
 
-    fn join_codegen_and_link(
+    fn join_codegen(
         &self,
-        ongoing_codegen: Box<Any>,
+        ongoing_codegen: Box<dyn Any>,
+        _sess: &Session,
+    ) -> Result<(CodegenResults, FxHashMap<WorkProductId, WorkProduct>), ErrorReported> {
+        let codegen_results = ongoing_codegen
+            .downcast::<CodegenResults>()
+            .expect("in join_codegen: ongoing_codegen is not a CodegenResults");
+        Ok((*codegen_results, FxHashMap::default()))
+    }
+
+    fn link(
+        &self,
         sess: &Session,
-        _dep_graph: &DepGraph,
+        codegen_results: CodegenResults,
         outputs: &OutputFilenames,
     ) -> Result<(), ErrorReported> {
+        use rustc_session::{config::CrateType, output::out_filename};
         use std::io::Write;
-        use rustc::session::config::CrateType;
-        use rustc_codegen_utils::link::out_filename;
-        let crate_name = ongoing_codegen.downcast::<Symbol>()
-            .expect("in join_codegen_and_link: ongoing_codegen is not a Symbol");
+        let crate_name = codegen_results.crate_name;
         for &crate_type in sess.opts.crate_types.iter() {
             if crate_type != CrateType::Rlib {
                 sess.fatal(&format!("Crate type is {:?}", crate_type));
             }
-            let output_name =
-                out_filename(sess, crate_type, &outputs, &*crate_name.as_str());
+            let output_name = out_filename(sess, crate_type, &outputs, &*crate_name.as_str());
             let mut out_file = ::std::fs::File::create(output_name).unwrap();
             write!(out_file, "This has been \"compiled\" successfully.").unwrap();
         }
@@ -97,6 +104,6 @@ impl CodegenBackend for TheBackend {
 
 /// This is the entrypoint for a hot plugged rustc_codegen_llvm
 #[no_mangle]
-pub fn __rustc_codegen_backend() -> Box<CodegenBackend> {
+pub fn __rustc_codegen_backend() -> Box<dyn CodegenBackend> {
     Box::new(TheBackend)
 }

@@ -1,8 +1,14 @@
 error: missing fragment specifier
-  --> $DIR/macro-match-nonterminal.rs:1:24
+  --> $DIR/macro-match-nonterminal.rs:2:8
    |
-LL | macro_rules! test { ($a, $b) => (()); }
-   |                        ^
+LL |     ($a, $b) => {
+   |        ^
 
-error: aborting due to previous error
+error: missing fragment specifier
+  --> $DIR/macro-match-nonterminal.rs:2:10
+   |
+LL |     ($a, $b) => {
+   |          ^^
+
+error: aborting due to 2 previous errors
 

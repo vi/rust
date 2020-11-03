@@ -15,22 +15,21 @@ mod priv_trait {
 
     pub macro mac() {
         let value = <Pub as PrivTr>::method;
-        //~^ ERROR type `for<'r> fn(&'r priv_trait::Pub) {<priv_trait::Pub as priv_trait::PrivTr>::method}` is private
+        //~^ ERROR type `for<'r> fn(&'r priv_trait::Pub) {<priv_trait::Pub as PrivTr>::method}` is private
         value;
-        //~^ ERROR type `for<'r> fn(&'r priv_trait::Pub) {<priv_trait::Pub as priv_trait::PrivTr>::method}` is private
+        //~^ ERROR type `for<'r> fn(&'r priv_trait::Pub) {<priv_trait::Pub as PrivTr>::method}` is private
         Pub.method();
-        //~^ ERROR type `for<'r> fn(&'r Self) {<Self as priv_trait::PrivTr>::method}` is private
+        //~^ ERROR type `for<'r> fn(&'r Self) {<Self as PrivTr>::method}` is private
         <Pub as PrivTr>::CONST;
-        //~^ ERROR associated constant `PrivTr::CONST` is private
+        //~^ ERROR associated constant `<Pub as PrivTr>::CONST` is private
         let _: <Pub as PrivTr>::AssocTy;
-        //~^ ERROR trait `priv_trait::PrivTr` is private
-        //~| ERROR trait `priv_trait::PrivTr` is private
+        //~^ ERROR associated type `<Pub as PrivTr>::AssocTy` is private
         pub type InSignatureTy = <Pub as PrivTr>::AssocTy;
-        //~^ ERROR trait `priv_trait::PrivTr` is private
+        //~^ ERROR trait `PrivTr` is private
         pub trait InSignatureTr: PrivTr {}
-        //~^ ERROR trait `priv_trait::PrivTr` is private
+        //~^ ERROR trait `PrivTr` is private
         impl PrivTr for u8 {}
-        //~^ ERROR trait `priv_trait::PrivTr` is private
+        //~^ ERROR trait `PrivTr` is private
     }
 }
 fn priv_trait() {
@@ -116,15 +115,11 @@ mod priv_parent_substs {
         <Priv as PubTr<_>>::CONST;
         //~^ ERROR type `priv_parent_substs::Priv` is private
 
-        let _: <Pub as PubTr>::AssocTy;
-        //~^ ERROR type `priv_parent_substs::Priv` is private
-        //~| ERROR type `priv_parent_substs::Priv` is private
+        let _: <Pub as PubTr>::AssocTy; // FIXME no longer an error?!
         let _: <Pub as PubTr<_>>::AssocTy;
         //~^ ERROR type `priv_parent_substs::Priv` is private
-        //~| ERROR type `priv_parent_substs::Priv` is private
         let _: <Priv as PubTr<_>>::AssocTy;
         //~^ ERROR type `priv_parent_substs::Priv` is private
-        //~| ERROR type `priv_parent_substs::Priv` is private
 
         pub type InSignatureTy1 = <Pub as PubTr>::AssocTy;
         //~^ ERROR type `priv_parent_substs::Priv` is private

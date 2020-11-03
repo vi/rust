@@ -5,10 +5,31 @@ set -e
 export MSYS_NO_PATHCONV=1
 
 script=`cd $(dirname $0) && pwd`/`basename $0`
-image=$1
 
-docker_dir="`dirname $script`"
-ci_dir="`dirname $docker_dir`"
+image=""
+dev=0
+
+while [[ $# -gt 0 ]]
+do
+  case "$1" in
+    --dev)
+      dev=1
+      ;;
+    *)
+      if [ -n "$image" ]
+      then
+        echo "expected single argument for the image name"
+        exit 1
+      fi
+      image="$1"
+      ;;
+  esac
+  shift
+done
+
+script_dir="`dirname $script`"
+docker_dir="${script_dir}/host-$(uname -m)"
+ci_dir="`dirname $script_dir`"
 src_dir="`dirname $ci_dir`"
 root_dir="`dirname $src_dir`"
 
@@ -16,6 +37,8 @@ objdir=$root_dir/obj
 dist=$objdir/build/dist
 
 source "$ci_dir/shared.sh"
+
+CACHE_DOMAIN="${CACHE_DOMAIN:-ci-caches.rust-lang.org}"
 
 if [ -f "$docker_dir/$image/Dockerfile" ]; then
     if [ "$CI" != "" ]; then
@@ -29,18 +52,20 @@ if [ -f "$docker_dir/$image/Dockerfile" ]; then
       rm -f "$copied_files"
       for i in $(sed -n -e 's/^COPY \(.*\) .*$/\1/p' "$docker_dir/$image/Dockerfile"); do
         # List the file names
-        find "$docker_dir/$i" -type f >> $copied_files
+        find "$script_dir/$i" -type f >> $copied_files
       done
       # Sort the file names and cat the content into the hash key
       sort $copied_files | xargs cat >> $hash_key
+
+      # Include the architecture in the hash key, since our Linux CI does not
+      # only run in x86_64 machines.
+      uname -m >> $hash_key
 
       docker --version >> $hash_key
       cksum=$(sha512sum $hash_key | \
         awk '{print $1}')
 
-      s3url="s3://$SCCACHE_BUCKET/docker/$cksum"
-      url="https://$SCCACHE_BUCKET.s3.amazonaws.com/docker/$cksum"
-      upload="aws s3 cp - $s3url"
+      url="https://$CACHE_DOMAIN/docker/$cksum"
 
       echo "Attempting to download $url"
       rm -f /tmp/rustci_docker_cache
@@ -53,10 +78,10 @@ if [ -f "$docker_dir/$image/Dockerfile" ]; then
 
     dockerfile="$docker_dir/$image/Dockerfile"
     if [ -x /usr/bin/cygpath ]; then
-        context="`cygpath -w $docker_dir`"
+        context="`cygpath -w $script_dir`"
         dockerfile="`cygpath -w $dockerfile`"
     else
-        context="$docker_dir"
+        context="$script_dir"
     fi
     retry docker \
       build \
@@ -65,7 +90,9 @@ if [ -f "$docker_dir/$image/Dockerfile" ]; then
       -f "$dockerfile" \
       "$context"
 
-    if [ "$upload" != "" ]; then
+    if [ "$CI" != "" ]; then
+      s3url="s3://$SCCACHE_BUCKET/docker/$cksum"
+      upload="aws s3 cp - $s3url"
       digest=$(docker inspect rust-ci --format '{{.Id}}')
       echo "Built container $digest"
       if ! grep -q "$digest" <(echo "$loaded_images"); then
@@ -92,20 +119,43 @@ elif [ -f "$docker_dir/disabled/$image/Dockerfile" ]; then
         exit 1
     fi
     # Transform changes the context of disabled Dockerfiles to match the enabled ones
-    tar --transform 's#^./disabled/#./#' -C $docker_dir -c . | docker \
+    tar --transform 's#disabled/#./#' -C $script_dir -c . | docker \
       build \
       --rm \
       -t rust-ci \
-      -f "$image/Dockerfile" \
+      -f "host-$(uname -m)/$image/Dockerfile" \
       -
 else
     echo Invalid image: $image
+
+    # Check whether the image exists for other architectures
+    for arch_dir in "${script_dir}"/host-*; do
+        # Avoid checking non-directories and the current host architecture directory
+        if ! [[ -d "${arch_dir}" ]]; then
+            continue
+        fi
+        if [[ "${arch_dir}" = "${docker_dir}" ]]; then
+            continue
+        fi
+
+        arch_name="$(basename "${arch_dir}" | sed 's/^host-//')"
+        if [[ -f "${arch_dir}/${image}/Dockerfile" ]]; then
+            echo "Note: the image exists for the ${arch_name} host architecture"
+        elif [[ -f "${arch_dir}/disabled/${image}/Dockerfile" ]]; then
+            echo "Note: the disabled image exists for the ${arch_name} host architecture"
+        else
+            continue
+        fi
+        echo "Note: the current host architecture is $(uname -m)"
+    done
+
     exit 1
 fi
 
 mkdir -p $HOME/.cargo
 mkdir -p $objdir/tmp
 mkdir -p $objdir/cores
+mkdir -p /tmp/toolstate
 
 args=
 if [ "$SCCACHE_BUCKET" != "" ]; then
@@ -156,7 +206,17 @@ else
   args="$args --volume $objdir:/checkout/obj"
   args="$args --volume $HOME/.cargo:/cargo"
   args="$args --volume $HOME/rustsrc:$HOME/rustsrc"
+  args="$args --volume /tmp/toolstate:/tmp/toolstate"
   args="$args --env LOCAL_USER_ID=`id -u`"
+fi
+
+if [ "$dev" = "1" ]
+then
+  # Interactive + TTY
+  args="$args -it"
+  command="/bin/bash"
+else
+  command="/checkout/src/ci/run.sh"
 fi
 
 docker \
@@ -170,13 +230,16 @@ docker \
   --env CI \
   --env TF_BUILD \
   --env BUILD_SOURCEBRANCHNAME \
+  --env GITHUB_ACTIONS \
+  --env GITHUB_REF \
   --env TOOLSTATE_REPO_ACCESS_TOKEN \
   --env TOOLSTATE_REPO \
+  --env TOOLSTATE_PUBLISH \
   --env CI_JOB_NAME="${CI_JOB_NAME-$IMAGE}" \
   --init \
   --rm \
   rust-ci \
-  /checkout/src/ci/run.sh
+  $command
 
 if [ -f /.dockerenv ]; then
   rm -rf $objdir

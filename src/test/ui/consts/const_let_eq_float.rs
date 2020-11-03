@@ -1,12 +1,13 @@
-// build-pass (FIXME(62277): could be check-pass?)
+// run-pass
 
-#![feature(const_fn)]
+#![feature(const_fn_floating_point_arithmetic)]
 
 struct Foo<T>(T);
 struct Bar<T> { x: T }
 struct W(f32);
 struct A { a: f32 }
 
+#[allow(redundant_semicolons)]
 const fn basics((a,): (f32,)) -> f32 {
     // Deferred assignment:
     let b: f32;

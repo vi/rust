@@ -1,4 +1,5 @@
-// build-pass (FIXME(62277): could be check-pass?)
+// check-pass
+// ignore-compare-mode-chalk
 #[derive(Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Array<T> {
     f00: [T; 00],

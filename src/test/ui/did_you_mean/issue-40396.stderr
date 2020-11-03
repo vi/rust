@@ -1,103 +1,112 @@
-error: chained comparison operators require parentheses
+error: comparison operators cannot be chained
   --> $DIR/issue-40396.rs:2:20
    |
 LL |     (0..13).collect<Vec<i32>>();
-   |                    ^^^^^^^^
+   |                    ^   ^
    |
-   = help: use `::<...>` instead of `<...>` if you meant to specify type arguments
-   = help: or use `(...)` if you meant to specify fn arguments
+help: use `::<...>` instead of `<...>` to specify type or const arguments
+   |
+LL |     (0..13).collect::<Vec<i32>>();
+   |                    ^^
 
-error: chained comparison operators require parentheses
-  --> $DIR/issue-40396.rs:10:8
+error: comparison operators cannot be chained
+  --> $DIR/issue-40396.rs:5:8
    |
 LL |     Vec<i32>::new();
-   |        ^^^^^^^
+   |        ^   ^
    |
-   = help: use `::<...>` instead of `<...>` if you meant to specify type arguments
-   = help: or use `(...)` if you meant to specify fn arguments
+help: use `::<...>` instead of `<...>` to specify type or const arguments
+   |
+LL |     Vec::<i32>::new();
+   |        ^^
 
-error: chained comparison operators require parentheses
-  --> $DIR/issue-40396.rs:18:20
+error: comparison operators cannot be chained
+  --> $DIR/issue-40396.rs:8:20
    |
 LL |     (0..13).collect<Vec<i32>();
-   |                    ^^^^^^^^
+   |                    ^   ^
    |
-   = help: use `::<...>` instead of `<...>` if you meant to specify type arguments
-   = help: or use `(...)` if you meant to specify fn arguments
+help: use `::<...>` instead of `<...>` to specify type or const arguments
+   |
+LL |     (0..13).collect::<Vec<i32>();
+   |                    ^^
 
-error: chained comparison operators require parentheses
-  --> $DIR/issue-40396.rs:18:24
+error: expected one of `!`, `.`, `::`, `;`, `?`, `{`, or an operator, found `,`
+  --> $DIR/issue-40396.rs:11:43
    |
-LL |     (0..13).collect<Vec<i32>();
-   |                        ^^^^^^
+LL |     let x = std::collections::HashMap<i128, i128>::new();
+   |                                           ^ expected one of 7 possible tokens
    |
-   = help: use `::<...>` instead of `<...>` if you meant to specify type arguments
-   = help: or use `(...)` if you meant to specify fn arguments
+help: use `::<...>` instead of `<...>` to specify type or const arguments
+   |
+LL |     let x = std::collections::HashMap::<i128, i128>::new();
+   |                                      ^^
 
-error[E0423]: expected value, found struct `Vec`
-  --> $DIR/issue-40396.rs:2:21
+error: expected one of `!`, `.`, `::`, `;`, `?`, `{`, `}`, or an operator, found `,`
+  --> $DIR/issue-40396.rs:15:39
    |
-LL |     (0..13).collect<Vec<i32>>();
-   |                     ^^^ did you mean `Vec { /* fields */ }`?
+LL |         std::collections::HashMap<i128, i128>::new()
+   |                                       ^ expected one of 8 possible tokens
+   |
+help: use `::<...>` instead of `<...>` to specify type or const arguments
+   |
+LL |         std::collections::HashMap::<i128, i128>::new()
+   |                                  ^^
 
-error[E0423]: expected value, found builtin type `i32`
-  --> $DIR/issue-40396.rs:2:25
+error: expected one of `!`, `.`, `::`, `;`, `?`, `{`, `}`, or an operator, found `,`
+  --> $DIR/issue-40396.rs:20:39
    |
-LL |     (0..13).collect<Vec<i32>>();
-   |                         ^^^ not a value
+LL |         std::collections::HashMap<i128, i128>::new();
+   |                                       ^ expected one of 8 possible tokens
+   |
+help: use `::<...>` instead of `<...>` to specify type or const arguments
+   |
+LL |         std::collections::HashMap::<i128, i128>::new();
+   |                                  ^^
 
-error[E0423]: expected value, found struct `Vec`
-  --> $DIR/issue-40396.rs:10:5
+error: expected one of `!`, `.`, `::`, `;`, `?`, `{`, `}`, or an operator, found `,`
+  --> $DIR/issue-40396.rs:25:39
    |
-LL |     Vec<i32>::new();
-   |     ^^^ did you mean `Vec { /* fields */ }`?
-
-error[E0423]: expected value, found builtin type `i32`
-  --> $DIR/issue-40396.rs:10:9
+LL |         std::collections::HashMap<i128, i128>::new(1, 2);
+   |                                       ^ expected one of 8 possible tokens
    |
-LL |     Vec<i32>::new();
-   |         ^^^ not a value
-
-error[E0425]: cannot find function `new` in the crate root
-  --> $DIR/issue-40396.rs:10:15
+help: use `::<...>` instead of `<...>` to specify type or const arguments
    |
-LL |     Vec<i32>::new();
-   |               ^^^ not found in the crate root
-
-error[E0423]: expected value, found struct `Vec`
-  --> $DIR/issue-40396.rs:18:21
-   |
-LL |     (0..13).collect<Vec<i32>();
-   |                     ^^^ did you mean `Vec { /* fields */ }`?
-
-error[E0423]: expected value, found builtin type `i32`
-  --> $DIR/issue-40396.rs:18:25
-   |
-LL |     (0..13).collect<Vec<i32>();
-   |                         ^^^ not a value
-
-error[E0615]: attempted to take value of method `collect` on type `std::ops::Range<{integer}>`
-  --> $DIR/issue-40396.rs:2:13
-   |
-LL |     (0..13).collect<Vec<i32>>();
-   |             ^^^^^^^ help: use parentheses to call the method: `collect()`
-
-error[E0615]: attempted to take value of method `collect` on type `std::ops::Range<{integer}>`
-  --> $DIR/issue-40396.rs:18:13
-   |
-LL |     (0..13).collect<Vec<i32>();
-   |             ^^^^^^^ help: use parentheses to call the method: `collect()`
+LL |         std::collections::HashMap::<i128, i128>::new(1, 2);
+   |                                  ^^
 
 error[E0308]: mismatched types
-  --> $DIR/issue-40396.rs:18:29
+  --> $DIR/issue-40396.rs:13:17
    |
-LL |     (0..13).collect<Vec<i32>();
-   |                             ^^ expected bool, found ()
+LL |     let x: () = 42;
+   |            --   ^^ expected `()`, found integer
+   |            |
+   |            expected due to this
+
+error[E0308]: mismatched types
+  --> $DIR/issue-40396.rs:18:17
    |
-   = note: expected type `bool`
-              found type `()`
+LL |     let x: () = 42;
+   |            --   ^^ expected `()`, found integer
+   |            |
+   |            expected due to this
 
-error: aborting due to 14 previous errors
+error[E0308]: mismatched types
+  --> $DIR/issue-40396.rs:22:21
+   |
+LL |         let x: () = 42;
+   |                --   ^^ expected `()`, found integer
+   |                |
+   |                expected due to this
 
-Some errors have detailed explanations: E0308, E0423, E0425, E0615.
-For more information about an error, try `rustc --explain E0308`.
+error[E0308]: mismatched types
+  --> $DIR/issue-40396.rs:27:21
+   |
+LL |         let x: () = 32;
+   |                --   ^^ expected `()`, found integer
+   |                |
+   |                expected due to this
+
+error: aborting due to 11 previous errors
+
+For more information about this error, try `rustc --explain E0308`.

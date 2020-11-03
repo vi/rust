@@ -1,6 +1,8 @@
 // edition:2018
 // ignore-tidy-linelength
-#![feature(async_await, existential_type)]
+// ignore-compare-mode-chalk
+
+#![feature(type_alias_impl_trait)]
 
 pub trait Bar {
     type E: Copy;
@@ -9,10 +11,10 @@ pub trait Bar {
 }
 
 impl<S> Bar for S {
-    existential type E: Copy;
-    //~^ ERROR the trait bound `impl std::future::Future: std::marker::Copy` is not satisfied [E0277]
+    type E = impl std::marker::Copy;
+    //~^ ERROR the trait bound `impl Future: Copy` is not satisfied [E0277]
     fn foo<T>() -> Self::E {
-    //~^ ERROR type parameter `T` is part of concrete type but not used in parameter list for existential type
+    //~^ ERROR type parameter `T` is part of concrete type but not used in parameter list for the `impl Trait` type alias
         async {}
     }
 }

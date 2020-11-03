@@ -2,7 +2,7 @@
 // injected intrinsics by the compiler.
 #![deny(missing_docs)]
 #![allow(dead_code)]
-#![feature(associated_type_defaults)]
+#![feature(associated_type_defaults, extern_types)]
 
 //! Some garbage docs for the crate here
 #![doc="More garbage"]
@@ -50,8 +50,8 @@ trait B {
 }
 
 pub trait C { //~ ERROR: missing documentation for a trait
-    fn foo(&self); //~ ERROR: missing documentation for a trait method
-    fn foo_with_impl(&self) {} //~ ERROR: missing documentation for a trait method
+    fn foo(&self); //~ ERROR: missing documentation for an associated function
+    fn foo_with_impl(&self) {} //~ ERROR: missing documentation for an associated function
 }
 
 #[allow(missing_docs)]
@@ -60,7 +60,7 @@ pub trait D {
 }
 
 /// dox
-pub trait E {
+pub trait E: Sized {
     type AssociatedType; //~ ERROR: missing documentation for an associated type
     type AssociatedTypeDef = Self; //~ ERROR: missing documentation for an associated type
 
@@ -78,7 +78,7 @@ impl Foo {
 }
 
 impl PubFoo {
-    pub fn foo() {} //~ ERROR: missing documentation for a method
+    pub fn foo() {} //~ ERROR: missing documentation for an associated function
     /// dox
     pub fn foo1() {}
     fn foo2() {}
@@ -181,6 +181,23 @@ pub mod public_interface {
     pub use internal_impl::undocumented1 as bar;
     pub use internal_impl::{documented, undocumented2};
     pub use internal_impl::globbed::*;
+}
+
+extern "C" {
+    /// dox
+    pub fn extern_fn_documented(f: f32) -> f32;
+    pub fn extern_fn_undocumented(f: f32) -> f32;
+    //~^ ERROR: missing documentation for a function
+
+    /// dox
+    pub static EXTERN_STATIC_DOCUMENTED: u8;
+    pub static EXTERN_STATIC_UNDOCUMENTED: u8;
+    //~^ ERROR: missing documentation for a static
+
+    /// dox
+    pub type ExternTyDocumented;
+    pub type ExternTyUndocumented;
+    //~^ ERROR: missing documentation for a foreign type
 }
 
 fn main() {}

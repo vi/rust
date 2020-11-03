@@ -1,10 +1,9 @@
-//! These structs are a subset of the ones found in `syntax::json`.
+//! These structs are a subset of the ones found in `rustc_errors::json`.
 //! They are only used for deserialization of JSON output provided by libtest.
 
 use crate::errors::{Error, ErrorKind};
 use crate::runtest::ProcRes;
 use serde::Deserialize;
-use serde_json;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
@@ -35,6 +34,17 @@ struct DiagnosticSpan {
     label: Option<String>,
     suggested_replacement: Option<String>,
     expansion: Option<Box<DiagnosticSpanMacroExpansion>>,
+}
+
+#[derive(Deserialize)]
+struct FutureIncompatReport {
+    future_incompat_report: Vec<FutureBreakageItem>,
+}
+
+#[derive(Deserialize)]
+struct FutureBreakageItem {
+    future_breakage_date: Option<String>,
+    diagnostic: Diagnostic,
 }
 
 impl DiagnosticSpan {
@@ -69,6 +79,13 @@ struct DiagnosticCode {
     explanation: Option<String>,
 }
 
+pub fn rustfix_diagnostics_only(output: &str) -> String {
+    output
+        .lines()
+        .filter(|line| line.starts_with('{') && serde_json::from_str::<Diagnostic>(line).is_ok())
+        .collect()
+}
+
 pub fn extract_rendered(output: &str) -> String {
     output
         .lines()
@@ -76,7 +93,29 @@ pub fn extract_rendered(output: &str) -> String {
             if line.starts_with('{') {
                 if let Ok(diagnostic) = serde_json::from_str::<Diagnostic>(line) {
                     diagnostic.rendered
-                } else if let Ok(_) = serde_json::from_str::<ArtifactNotification>(line) {
+                } else if let Ok(report) = serde_json::from_str::<FutureIncompatReport>(line) {
+                    if report.future_incompat_report.is_empty() {
+                        None
+                    } else {
+                        Some(format!(
+                            "Future incompatibility report: {}",
+                            report
+                                .future_incompat_report
+                                .into_iter()
+                                .map(|item| {
+                                    format!(
+                                        "Future breakage date: {}, diagnostic:\n{}",
+                                        item.future_breakage_date
+                                            .unwrap_or_else(|| "None".to_string()),
+                                        item.diagnostic
+                                            .rendered
+                                            .unwrap_or_else(|| "Not rendered".to_string())
+                                    )
+                                })
+                                .collect::<String>()
+                        ))
+                    }
+                } else if serde_json::from_str::<ArtifactNotification>(line).is_ok() {
                     // Ignore the notification.
                     None
                 } else {
@@ -95,10 +134,7 @@ pub fn extract_rendered(output: &str) -> String {
 }
 
 pub fn parse_output(file_name: &str, output: &str, proc_res: &ProcRes) -> Vec<Error> {
-    output
-        .lines()
-        .flat_map(|line| parse_line(file_name, line, output, proc_res))
-        .collect()
+    output.lines().flat_map(|line| parse_line(file_name, line, output, proc_res)).collect()
 }
 
 fn parse_line(file_name: &str, line: &str, output: &str, proc_res: &ProcRes) -> Vec<Error> {
@@ -112,11 +148,17 @@ fn parse_line(file_name: &str, line: &str, output: &str, proc_res: &ProcRes) -> 
                 expected_errors
             }
             Err(error) => {
-                proc_res.fatal(Some(&format!(
-                    "failed to decode compiler output as json: \
-                     `{}`\nline: {}\noutput: {}",
-                    error, line, output
-                )));
+                // Ignore the future compat report message - this is handled
+                // by `extract_rendered`
+                if serde_json::from_str::<FutureIncompatReport>(line).is_ok() {
+                    vec![]
+                } else {
+                    proc_res.fatal(Some(&format!(
+                        "failed to decode compiler output as json: \
+                         `{}`\nline: {}\noutput: {}",
+                        error, line, output
+                    )));
+                }
             }
         }
     } else {
@@ -138,11 +180,10 @@ fn push_expected_errors(
         .filter(|(_, span)| Path::new(&span.file_name) == Path::new(&file_name))
         .collect();
 
-    let spans_in_this_file: Vec<_> = spans_info_in_this_file.iter()
-        .map(|(_, span)| span)
-        .collect();
+    let spans_in_this_file: Vec<_> = spans_info_in_this_file.iter().map(|(_, span)| span).collect();
 
-    let primary_spans: Vec<_> = spans_info_in_this_file.iter()
+    let primary_spans: Vec<_> = spans_info_in_this_file
+        .iter()
         .filter(|(is_primary, _)| *is_primary)
         .map(|(_, span)| span)
         .take(1) // sometimes we have more than one showing up in the json; pick first
@@ -166,24 +207,33 @@ fn push_expected_errors(
     let with_code = |span: &DiagnosticSpan, text: &str| {
         match diagnostic.code {
             Some(ref code) =>
-                // FIXME(#33000) -- it'd be better to use a dedicated
-                // UI harness than to include the line/col number like
-                // this, but some current tests rely on it.
-                //
-                // Note: Do NOT include the filename. These can easily
-                // cause false matches where the expected message
-                // appears in the filename, and hence the message
-                // changes but the test still passes.
-                format!("{}:{}: {}:{}: {} [{}]",
-                        span.line_start, span.column_start,
-                        span.line_end, span.column_end,
-                        text, code.code.clone()),
+            // FIXME(#33000) -- it'd be better to use a dedicated
+            // UI harness than to include the line/col number like
+            // this, but some current tests rely on it.
+            //
+            // Note: Do NOT include the filename. These can easily
+            // cause false matches where the expected message
+            // appears in the filename, and hence the message
+            // changes but the test still passes.
+            {
+                format!(
+                    "{}:{}: {}:{}: {} [{}]",
+                    span.line_start,
+                    span.column_start,
+                    span.line_end,
+                    span.column_end,
+                    text,
+                    code.code.clone()
+                )
+            }
             None =>
-                // FIXME(#33000) -- it'd be better to use a dedicated UI harness
-                format!("{}:{}: {}:{}: {}",
-                        span.line_start, span.column_start,
-                        span.line_end, span.column_end,
-                        text),
+            // FIXME(#33000) -- it'd be better to use a dedicated UI harness
+            {
+                format!(
+                    "{}:{}: {}:{}: {}",
+                    span.line_start, span.column_start, span.line_end, span.column_end, text
+                )
+            }
         }
     };
 
@@ -195,11 +245,7 @@ fn push_expected_errors(
         for span in primary_spans {
             let msg = with_code(span, first_line);
             let kind = ErrorKind::from_str(&diagnostic.level).ok();
-            expected_errors.push(Error {
-                line_num: span.line_start,
-                kind,
-                msg,
-            });
+            expected_errors.push(Error { line_num: span.line_start, kind, msg });
         }
     }
     for next_line in message_lines {
@@ -233,10 +279,7 @@ fn push_expected_errors(
     }
 
     // Add notes for any labels that appear in the message.
-    for span in spans_in_this_file
-        .iter()
-        .filter(|span| span.label.is_some())
-    {
+    for span in spans_in_this_file.iter().filter(|span| span.label.is_some()) {
         expected_errors.push(Error {
             line_num: span.line_start,
             kind: Some(ErrorKind::Note),

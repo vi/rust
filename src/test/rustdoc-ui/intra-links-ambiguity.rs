@@ -1,4 +1,4 @@
-#![deny(intra_doc_link_resolution_failure)]
+#![deny(broken_intra_doc_links)]
 #![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
 
@@ -34,3 +34,7 @@ pub mod foo {
 ///
 /// Ambiguous non-implied shortcut link [`foo::bar`]. //~ERROR `foo::bar`
 pub struct Docs {}
+
+/// [true] //~ ERROR `true` is both a module and a builtin type
+/// [primitive@true]
+pub mod r#true {}

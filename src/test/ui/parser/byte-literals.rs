@@ -1,6 +1,3 @@
-// compile-flags: -Z continue-parse-after-error
-
-
 // ignore-tidy-tab
 
 static FOO: u8 = b'\f';  //~ ERROR unknown byte escape
@@ -11,5 +8,5 @@ pub fn main() {
     b'	';  //~ ERROR byte constant must be escaped
     b''';  //~ ERROR byte constant must be escaped
     b'é';  //~ ERROR byte constant must be ASCII
-    b'a  //~ ERROR unterminated byte constant
+    b'a  //~ ERROR unterminated byte constant [E0763]
 }

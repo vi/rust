@@ -1,4 +1,4 @@
-#![feature(intrinsics, lang_items, no_core)]
+#![feature(intrinsics, lang_items, no_core, rustc_attrs)]
 
 #![crate_type="rlib"]
 #![no_core]
@@ -87,4 +87,32 @@ fn main() {
     //~^ ERROR `cfg(target_has_atomic)` is experimental and subject to change
     cfg!(target_has_atomic = "ptr");
     //~^ ERROR `cfg(target_has_atomic)` is experimental and subject to change
+    cfg!(target_has_atomic_load_store = "8");
+    //~^ ERROR `cfg(target_has_atomic_load_store)` is experimental and subject to change
+    cfg!(target_has_atomic_load_store = "16");
+    //~^ ERROR `cfg(target_has_atomic_load_store)` is experimental and subject to change
+    cfg!(target_has_atomic_load_store = "32");
+    //~^ ERROR `cfg(target_has_atomic_load_store)` is experimental and subject to change
+    cfg!(target_has_atomic_load_store = "64");
+    //~^ ERROR `cfg(target_has_atomic_load_store)` is experimental and subject to change
+    cfg!(target_has_atomic_load_store = "128");
+    //~^ ERROR `cfg(target_has_atomic_load_store)` is experimental and subject to change
+    cfg!(target_has_atomic_load_store = "ptr");
+    //~^ ERROR `cfg(target_has_atomic_load_store)` is experimental and subject to change
+    cfg!(target_has_atomic_equal_alignment = "8");
+    //~^ ERROR `cfg(target_has_atomic_equal_alignment)` is experimental and subject to change
+    cfg!(target_has_atomic_equal_alignment = "16");
+    //~^ ERROR `cfg(target_has_atomic_equal_alignment)` is experimental and subject to change
+    cfg!(target_has_atomic_equal_alignment = "32");
+    //~^ ERROR `cfg(target_has_atomic_equal_alignment)` is experimental and subject to change
+    cfg!(target_has_atomic_equal_alignment = "64");
+    //~^ ERROR `cfg(target_has_atomic_equal_alignment)` is experimental and subject to change
+    cfg!(target_has_atomic_equal_alignment = "128");
+    //~^ ERROR `cfg(target_has_atomic_equal_alignment)` is experimental and subject to change
+    cfg!(target_has_atomic_equal_alignment = "ptr");
+    //~^ ERROR `cfg(target_has_atomic_equal_alignment)` is experimental and subject to change
 }
+
+#[macro_export]
+#[rustc_builtin_macro]
+macro_rules! cfg { () => () }

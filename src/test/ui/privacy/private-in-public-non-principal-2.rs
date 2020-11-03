@@ -1,4 +1,5 @@
 #![feature(optin_builtin_traits)]
+#![feature(negative_impls)]
 
 #[allow(private_in_public)]
 mod m {
@@ -9,5 +10,5 @@ mod m {
 
 fn main() {
     m::leak_dyn_nonprincipal();
-    //~^ ERROR trait `m::PrivNonPrincipal` is private
+    //~^ ERROR trait `PrivNonPrincipal` is private
 }

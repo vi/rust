@@ -1,27 +1,29 @@
-fn foo() {
+fn main() {
     (0..13).collect<Vec<i32>>();
-    //~^ ERROR chained comparison
-    //~| ERROR expected value, found struct `Vec`
-    //~| ERROR expected value, found builtin type `i32`
-    //~| ERROR attempted to take value of method `collect`
-}
-
-fn bar() {
+    //~^ ERROR comparison operators cannot be chained
+    //~| HELP use `::<...>` instead
     Vec<i32>::new();
-    //~^ ERROR chained comparison
-    //~| ERROR expected value, found struct `Vec`
-    //~| ERROR expected value, found builtin type `i32`
-    //~| ERROR cannot find function `new` in the crate root
-}
-
-fn qux() {
+    //~^ ERROR comparison operators cannot be chained
+    //~| HELP use `::<...>` instead
     (0..13).collect<Vec<i32>();
-    //~^ ERROR chained comparison
-    //~| ERROR chained comparison
-    //~| ERROR expected value, found struct `Vec`
-    //~| ERROR expected value, found builtin type `i32`
-    //~| ERROR attempted to take value of method `collect`
-    //~| ERROR mismatched types
+    //~^ ERROR comparison operators cannot be chained
+    //~| HELP use `::<...>` instead
+    let x = std::collections::HashMap<i128, i128>::new(); //~ ERROR expected one of
+    //~^ HELP use `::<...>` instead
+    let x: () = 42; //~ ERROR mismatched types
+    let x = {
+        std::collections::HashMap<i128, i128>::new() //~ ERROR expected one of
+        //~^ HELP use `::<...>` instead
+    };
+    let x: () = 42; //~ ERROR mismatched types
+    let x = {
+        std::collections::HashMap<i128, i128>::new(); //~ ERROR expected one of
+        //~^ HELP use `::<...>` instead
+        let x: () = 42; //~ ERROR mismatched types
+    };
+    {
+        std::collections::HashMap<i128, i128>::new(1, 2); //~ ERROR expected one of
+        //~^ HELP use `::<...>` instead
+        let x: () = 32; //~ ERROR mismatched types
+    };
 }
-
-fn main() {}

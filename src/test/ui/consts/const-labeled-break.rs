@@ -5,6 +5,7 @@
 //
 // See https://github.com/rust-lang/rust/issues/51350 for more information.
 
-const CRASH: () = 'a: while break 'a {};
+#[allow(unreachable_code)]
+const _: () = 'a: while break 'a {};
 
 fn main() {}

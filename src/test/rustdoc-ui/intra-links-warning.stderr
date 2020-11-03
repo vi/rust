@@ -1,78 +1,67 @@
-warning: `[Foo::baz]` cannot be resolved, ignoring it...
+warning: unresolved link to `Foo::baz`
   --> $DIR/intra-links-warning.rs:3:23
    |
 LL |        //! Test with [Foo::baz], [Bar::foo], ...
-   |                       ^^^^^^^^ cannot be resolved, ignoring
+   |                       ^^^^^^^^ the struct `Foo` has no field or associated item named `baz`
    |
-   = note: `#[warn(intra_doc_link_resolution_failure)]` on by default
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = note: `#[warn(broken_intra_doc_links)]` on by default
 
-warning: `[Bar::foo]` cannot be resolved, ignoring it...
+warning: unresolved link to `Bar::foo`
   --> $DIR/intra-links-warning.rs:3:35
    |
 LL |        //! Test with [Foo::baz], [Bar::foo], ...
-   |                                   ^^^^^^^^ cannot be resolved, ignoring
-   |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   |                                   ^^^^^^^^ no item named `Bar` in scope
 
-warning: `[Uniooon::X]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:4:13
+warning: unresolved link to `Uniooon::X`
+  --> $DIR/intra-links-warning.rs:6:13
    |
 LL |      //! , [Uniooon::X] and [Qux::Z].
-   |             ^^^^^^^^^^ cannot be resolved, ignoring
-   |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   |             ^^^^^^^^^^ no item named `Uniooon` in scope
 
-warning: `[Qux::Z]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:4:30
+warning: unresolved link to `Qux::Z`
+  --> $DIR/intra-links-warning.rs:6:30
    |
 LL |      //! , [Uniooon::X] and [Qux::Z].
-   |                              ^^^^^^ cannot be resolved, ignoring
-   |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   |                              ^^^^^^ no item named `Qux` in scope
 
-warning: `[Uniooon::X]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:6:14
+warning: unresolved link to `Uniooon::X`
+  --> $DIR/intra-links-warning.rs:10:14
    |
 LL |       //! , [Uniooon::X] and [Qux::Z].
-   |              ^^^^^^^^^^ cannot be resolved, ignoring
-   |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   |              ^^^^^^^^^^ no item named `Uniooon` in scope
 
-warning: `[Qux::Z]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:6:31
+warning: unresolved link to `Qux::Z`
+  --> $DIR/intra-links-warning.rs:10:31
    |
 LL |       //! , [Uniooon::X] and [Qux::Z].
-   |                               ^^^^^^ cannot be resolved, ignoring
-   |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   |                               ^^^^^^ no item named `Qux` in scope
 
-warning: `[Qux:Y]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:8:13
+warning: unresolved link to `Qux:Y`
+  --> $DIR/intra-links-warning.rs:14:13
    |
 LL |        /// [Qux:Y]
-   |             ^^^^^ cannot be resolved, ignoring
+   |             ^^^^^ no item named `Qux:Y` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:51:30
+warning: unresolved link to `error`
+  --> $DIR/intra-links-warning.rs:58:30
    |
 LL |  * time to introduce a link [error]*/
-   |                              ^^^^^ cannot be resolved, ignoring
+   |                              ^^^^^ no item named `error` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:57:30
+warning: unresolved link to `error`
+  --> $DIR/intra-links-warning.rs:64:30
    |
 LL |  * time to introduce a link [error]
-   |                              ^^^^^ cannot be resolved, ignoring
+   |                              ^^^^^ no item named `error` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:61:1
+warning: unresolved link to `error`
+  --> $DIR/intra-links-warning.rs:68:1
    |
 LL | #[doc = "single line [error]"]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -81,10 +70,11 @@ LL | #[doc = "single line [error]"]
            
            single line [error]
                         ^^^^^
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = note: no item named `error` in scope
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:64:1
+warning: unresolved link to `error`
+  --> $DIR/intra-links-warning.rs:71:1
    |
 LL | #[doc = "single line with \"escaping\" [error]"]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -93,10 +83,11 @@ LL | #[doc = "single line with \"escaping\" [error]"]
            
            single line with "escaping" [error]
                                         ^^^^^
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = note: no item named `error` in scope
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:67:1
+warning: unresolved link to `error`
+  --> $DIR/intra-links-warning.rs:74:1
    |
 LL | / /// Item docs.
 LL | | #[doc="Hello there!"]
@@ -107,50 +98,51 @@ LL | | /// [error]
            
            [error]
             ^^^^^
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = note: no item named `error` in scope
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error1]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:73:11
+warning: unresolved link to `error1`
+  --> $DIR/intra-links-warning.rs:80:11
    |
 LL | /// docs [error1]
-   |           ^^^^^^ cannot be resolved, ignoring
+   |           ^^^^^^ no item named `error1` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[error2]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:75:11
+warning: unresolved link to `error2`
+  --> $DIR/intra-links-warning.rs:82:11
    |
 LL | /// docs [error2]
-   |           ^^^^^^ cannot be resolved, ignoring
+   |           ^^^^^^ no item named `error2` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[BarA]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:14:10
+warning: unresolved link to `BarA`
+  --> $DIR/intra-links-warning.rs:21:10
    |
 LL | /// bar [BarA] bar
-   |          ^^^^ cannot be resolved, ignoring
+   |          ^^^^ no item named `BarA` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[BarB]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:20:9
+warning: unresolved link to `BarB`
+  --> $DIR/intra-links-warning.rs:27:9
    |
 LL |  * bar [BarB] bar
-   |         ^^^^ cannot be resolved, ignoring
+   |         ^^^^ no item named `BarB` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[BarC]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:27:6
+warning: unresolved link to `BarC`
+  --> $DIR/intra-links-warning.rs:34:6
    |
 LL | bar [BarC] bar
-   |      ^^^^ cannot be resolved, ignoring
+   |      ^^^^ no item named `BarC` in scope
    |
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[BarD]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:38:1
+warning: unresolved link to `BarD`
+  --> $DIR/intra-links-warning.rs:45:1
    |
 LL | #[doc = "Foo\nbar [BarD] bar\nbaz"]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -159,10 +151,11 @@ LL | #[doc = "Foo\nbar [BarD] bar\nbaz"]
            
            bar [BarD] bar
                 ^^^^
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = note: no item named `BarD` in scope
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-warning: `[BarF]` cannot be resolved, ignoring it...
-  --> $DIR/intra-links-warning.rs:43:9
+warning: unresolved link to `BarF`
+  --> $DIR/intra-links-warning.rs:50:9
    |
 LL |         #[doc = $f]
    |         ^^^^^^^^^^^
@@ -174,5 +167,9 @@ LL | f!("Foo\nbar [BarF] bar\nbaz");
            
            bar [BarF] bar
                 ^^^^
-   = help: to escape `[` and `]` characters, just add '\' before them like `\[` or `\]`
+   = note: no item named `BarF` in scope
+   = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+   = note: this warning originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: 19 warnings emitted
 

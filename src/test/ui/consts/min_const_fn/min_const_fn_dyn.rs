@@ -10,9 +10,6 @@ const fn no_inner_dyn_trait2(x: Hide) {
 //~^ ERROR trait bounds other than `Sized`
 }
 const fn no_inner_dyn_trait_ret() -> Hide { Hide(HasDyn { field: &0 }) }
-//~^ ERROR trait bounds other than `Sized`
-//~| WARNING temporary value dropped while borrowed
-//~| WARNING this error has been downgraded to a warning
-//~| WARNING this warning will become a hard error in the future
+//~^ ERROR unsizing cast
 
 fn main() {}

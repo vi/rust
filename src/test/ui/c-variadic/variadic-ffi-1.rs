@@ -1,5 +1,6 @@
 // ignore-arm stdcall isn't supported
 // ignore-aarch64 stdcall isn't supported
+// ignore-riscv64 stdcall isn't supported
 
 extern "stdcall" {
     fn printf(_: *const u8, ...); //~ ERROR: variadic function must have C or cdecl calling
@@ -13,8 +14,8 @@ extern "C" fn bar(f: isize, x: u8) {}
 
 fn main() {
     unsafe {
-        foo();  //~ ERROR this function takes at least 2 parameters but 0 parameters were supplied
-        foo(1); //~ ERROR this function takes at least 2 parameters but 1 parameter was supplied
+        foo();  //~ ERROR this function takes at least 2 arguments but 0 arguments were supplied
+        foo(1); //~ ERROR this function takes at least 2 arguments but 1 argument was supplied
 
         let x: unsafe extern "C" fn(f: isize, x: u8) = foo; //~ ERROR mismatched types
         let y: extern "C" fn(f: isize, x: u8, ...) = bar; //~ ERROR mismatched types

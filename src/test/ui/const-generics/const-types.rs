@@ -1,9 +1,12 @@
+// Check that arrays can be used with generic const and type.
 // run-pass
+// revisions: full min
 
-#![feature(const_generics)]
-//~^ WARN the feature `const_generics` is incomplete and may cause the compiler to crash
+#![cfg_attr(full, feature(const_generics))]
+#![cfg_attr(full, allow(incomplete_features))]
+#![cfg_attr(min, feature(min_const_generics))]
 
-#[allow(dead_code)]
+#![allow(dead_code, unused_variables)]
 
 struct ConstArray<T, const LEN: usize> {
     array: [T; LEN],

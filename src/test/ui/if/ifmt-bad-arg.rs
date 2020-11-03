@@ -75,4 +75,20 @@ ninth number: {
 tenth number: {}",
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     //~^^ ERROR: invalid format string
+    println!("{} {:.*} {}", 1, 3.2, 4);
+    //~^ ERROR 4 positional arguments in format string, but there are 3 arguments
+    //~| ERROR mismatched types
+    println!("{} {:07$.*} {}", 1, 3.2, 4);
+    //~^ ERROR 4 positional arguments in format string, but there are 3 arguments
+    //~| ERROR mismatched types
+    println!("{} {:07$} {}", 1, 3.2, 4);
+    //~^ ERROR invalid reference to positional argument 7 (there are 3 arguments)
+    println!("{:foo}", 1); //~ ERROR unknown format trait `foo`
+    println!("{5} {:4$} {6:7$}", 1);
+    //~^ ERROR invalid reference to positional arguments 4, 5, 6 and 7 (there is 1 argument)
+
+    // We used to ICE here because we tried to unconditionally access the first argument, which
+    // doesn't exist.
+    println!("{:.*}");
+    //~^ ERROR 2 positional arguments in format string, but no arguments were given
 }

@@ -1,14 +1,15 @@
 // check-pass
 // edition:2018
+// revisions: default sa
+//[sa] compile-flags: -Z save-analysis
+//-^ To make this the regression test for #75962.
 
-#![feature(async_await)]
-#![feature(existential_type)]
+#![feature(type_alias_impl_trait)]
 #![feature(impl_trait_in_bindings)]
 //~^ WARNING the feature `impl_trait_in_bindings` is incomplete
 
 // See issue 60414
 
-/////////////////////////////////////////////
 // Reduction to `impl Trait`
 
 struct Foo<T>(T);
@@ -32,7 +33,6 @@ mod impl_trait {
     }
 }
 
-/////////////////////////////////////////////
 // Same with lifetimes in the trait
 
 mod lifetimes {
@@ -59,7 +59,6 @@ mod lifetimes {
     }
 }
 
-/////////////////////////////////////////////
 // Reduction using `impl Trait` in bindings
 
 mod impl_trait_in_bindings {
@@ -80,10 +79,9 @@ mod impl_trait_in_bindings {
     }
 }
 
-/////////////////////////////////////////////
-// The same applied to `existential type`s
+// The same applied to `type Foo = impl Bar`s
 
-mod existential_types {
+mod opaque_types {
     trait Implemented {
         type Assoc;
     }
@@ -99,7 +97,7 @@ mod existential_types {
         type Out = u8;
     }
 
-    existential type Ex: Trait<Out = <() as Implemented>::Assoc>;
+    type Ex = impl Trait<Out = <() as Implemented>::Assoc>;
 
     fn define() -> Ex {
         ()

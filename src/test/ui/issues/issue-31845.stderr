@@ -2,7 +2,7 @@ error[E0425]: cannot find function `g` in this scope
   --> $DIR/issue-31845.rs:7:12
    |
 LL |            g();
-   |            ^ help: a function with a similar name exists: `h`
+   |            ^ not found in this scope
 
 error: aborting due to previous error
 

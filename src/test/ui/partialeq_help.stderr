@@ -4,8 +4,7 @@ error[E0277]: can't compare `&T` with `T`
 LL |     a == b;
    |       ^^ no implementation for `&T == T`
    |
-   = help: the trait `std::cmp::PartialEq<T>` is not implemented for `&T`
-   = help: consider adding a `where &T: std::cmp::PartialEq<T>` bound
+   = help: the trait `PartialEq<T>` is not implemented for `&T`
 
 error: aborting due to previous error
 

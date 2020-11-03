@@ -3,7 +3,10 @@
 #
 # Versions of the toolchain components are configurable in `musl-cross-make/Makefile` and
 # musl unlike GLIBC is forward compatible so upgrading it shouldn't break old distributions.
-# Right now we have: Binutils 2.27, GCC 6.4.0, musl 1.1.22.
+# Right now we have: Binutils 2.31.1, GCC 9.2.0, musl 1.1.24.
+
+# ignore-tidy-linelength
+
 set -ex
 
 hide_output() {
@@ -26,6 +29,9 @@ exit 1
 ARCH=$1
 TARGET=$ARCH-linux-musl
 
+# Don't depend on the mirrors of sabotage linux that musl-cross-make uses.
+LINUX_HEADERS_SITE=https://ci-mirrors.rust-lang.org/rustc/sabotage-linux-tarballs
+
 OUTPUT=/usr/local
 shift
 
@@ -33,11 +39,13 @@ shift
 # Apparently applying `-fPIC` everywhere allows them to link successfully.
 export CFLAGS="-fPIC $CFLAGS"
 
-git clone https://github.com/richfelker/musl-cross-make -b v0.9.8
+git clone https://github.com/richfelker/musl-cross-make # -b v0.9.9
 cd musl-cross-make
+# A few commits ahead of v0.9.9 to include the cowpatch fix:
+git checkout a54eb56f33f255dfca60be045f12a5cfaf5a72a9
 
-hide_output make -j$(nproc) TARGET=$TARGET
-hide_output make install TARGET=$TARGET OUTPUT=$OUTPUT
+hide_output make -j$(nproc) TARGET=$TARGET MUSL_VER=1.1.24 LINUX_HEADERS_SITE=$LINUX_HEADERS_SITE
+hide_output make install TARGET=$TARGET MUSL_VER=1.1.24 LINUX_HEADERS_SITE=$LINUX_HEADERS_SITE OUTPUT=$OUTPUT
 
 cd -
 
@@ -54,29 +62,3 @@ if [ "$REPLACE_CC" = "1" ]; then
         ln -s $TARGET-g++ /usr/local/bin/$exec
     done
 fi
-
-export CC=$TARGET-gcc
-export CXX=$TARGET-g++
-
-LLVM=70
-
-# may have been downloaded in a previous run
-if [ ! -d libunwind-release_$LLVM ]; then
-  curl -L https://github.com/llvm-mirror/llvm/archive/release_$LLVM.tar.gz | tar xzf -
-  curl -L https://github.com/llvm-mirror/libunwind/archive/release_$LLVM.tar.gz | tar xzf -
-fi
-
-# fixme(mati865): Replace it with https://github.com/rust-lang/rust/pull/59089
-mkdir libunwind-build
-cd libunwind-build
-cmake ../libunwind-release_$LLVM \
-          -DLLVM_PATH=/build/llvm-release_$LLVM \
-          -DLIBUNWIND_ENABLE_SHARED=0 \
-          -DCMAKE_C_COMPILER=$CC \
-          -DCMAKE_CXX_COMPILER=$CXX \
-          -DCMAKE_C_FLAGS="$CFLAGS" \
-          -DCMAKE_CXX_FLAGS="$CXXFLAGS"
-
-hide_output make -j$(nproc)
-cp lib/libunwind.a $OUTPUT/$TARGET/lib
-cd - && rm -rf libunwind-build

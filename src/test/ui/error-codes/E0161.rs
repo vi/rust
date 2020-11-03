@@ -9,25 +9,19 @@
 //[zflagsul]compile-flags: -Z borrowck=migrate
 //[editionul]edition:2018
 
+#![allow(incomplete_features)]
 #![cfg_attr(nll, feature(nll))]
 #![cfg_attr(nllul, feature(nll))]
 #![cfg_attr(migrateul, feature(unsized_locals))]
 #![cfg_attr(zflagsul, feature(unsized_locals))]
 #![cfg_attr(nllul, feature(unsized_locals))]
 #![cfg_attr(editionul, feature(unsized_locals))]
-
 #![feature(box_syntax)]
 
 fn foo(x: Box<[i32]>) {
     box *x;
-    //[migrate]~^ ERROR E0161
-    //[nll]~^^ ERROR E0161
-    //[zflags]~^^^ ERROR E0161
-    //[edition]~^^^^ ERROR E0161
-    //[migrateul]~^^^^^ ERROR E0161
-    //[nllul]~^^^^^^ ERROR E0161
-    //[zflagsul]~^^^^^^^ ERROR E0161
-    //[editionul]~^^^^^^^^ ERROR E0161
+    //[migrate,nll,zflags,edition]~^ ERROR E0161
+    //[migrateul,nllul,zflagsul,editionul]~^^ ERROR E0161
 }
 
 fn main() {}

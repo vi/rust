@@ -1,0 +1,237 @@
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:22:9
+   |
+LL |     let ref a @ b = U;
+   |         -----^^^-
+   |         |       |
+   |         |       value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:24:9
+   |
+LL |     let ref a @ (ref b @ mut c, ref d @ e) = (U, U);
+   |         -----^^^^^^^^^^^^-----^^^^^^^^^^-^
+   |         |                |              |
+   |         |                |              value moved into `e` here
+   |         |                value moved into `c` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:24:18
+   |
+LL |     let ref a @ (ref b @ mut c, ref d @ e) = (U, U);
+   |                  -----^^^-----
+   |                  |       |
+   |                  |       value moved into `c` here
+   |                  value borrowed, by `b`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:24:33
+   |
+LL |     let ref a @ (ref b @ mut c, ref d @ e) = (U, U);
+   |                                 -----^^^-
+   |                                 |       |
+   |                                 |       value moved into `e` here
+   |                                 value borrowed, by `d`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:28:9
+   |
+LL |     let ref mut a @ [b, mut c] = [U, U];
+   |         ---------^^^^-^^-----^
+   |         |            |  |
+   |         |            |  value moved into `c` here
+   |         |            value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:30:9
+   |
+LL |     let ref a @ b = u();
+   |         -----^^^-
+   |         |       |
+   |         |       value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:32:9
+   |
+LL |     let ref a @ (ref b @ mut c, ref d @ e) = (u(), u());
+   |         -----^^^^^^^^^^^^-----^^^^^^^^^^-^
+   |         |                |              |
+   |         |                |              value moved into `e` here
+   |         |                value moved into `c` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:32:18
+   |
+LL |     let ref a @ (ref b @ mut c, ref d @ e) = (u(), u());
+   |                  -----^^^-----
+   |                  |       |
+   |                  |       value moved into `c` here
+   |                  value borrowed, by `b`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:32:33
+   |
+LL |     let ref a @ (ref b @ mut c, ref d @ e) = (u(), u());
+   |                                 -----^^^-
+   |                                 |       |
+   |                                 |       value moved into `e` here
+   |                                 value borrowed, by `d`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:36:9
+   |
+LL |     let ref mut a @ [b, mut c] = [u(), u()];
+   |         ---------^^^^-^^-----^
+   |         |            |  |
+   |         |            |  value moved into `c` here
+   |         |            value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:40:9
+   |
+LL |         ref a @ Some(b) => {}
+   |         -----^^^^^^^^-^
+   |         |            |
+   |         |            value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:45:9
+   |
+LL |         ref a @ Some((ref b @ mut c, ref d @ e)) => {}
+   |         -----^^^^^^^^^^^^^^^^^-----^^^^^^^^^^-^^
+   |         |                     |              |
+   |         |                     |              value moved into `e` here
+   |         |                     value moved into `c` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:45:23
+   |
+LL |         ref a @ Some((ref b @ mut c, ref d @ e)) => {}
+   |                       -----^^^-----
+   |                       |       |
+   |                       |       value moved into `c` here
+   |                       value borrowed, by `b`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:45:38
+   |
+LL |         ref a @ Some((ref b @ mut c, ref d @ e)) => {}
+   |                                      -----^^^-
+   |                                      |       |
+   |                                      |       value moved into `e` here
+   |                                      value borrowed, by `d`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:52:9
+   |
+LL |         ref mut a @ Some([b, mut c]) => {}
+   |         ---------^^^^^^^^^-^^-----^^
+   |         |                 |  |
+   |         |                 |  value moved into `c` here
+   |         |                 value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:57:9
+   |
+LL |         ref a @ Some(b) => {}
+   |         -----^^^^^^^^-^
+   |         |            |
+   |         |            value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:62:9
+   |
+LL |         ref a @ Some((ref b @ mut c, ref d @ e)) => {}
+   |         -----^^^^^^^^^^^^^^^^^-----^^^^^^^^^^-^^
+   |         |                     |              |
+   |         |                     |              value moved into `e` here
+   |         |                     value moved into `c` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:62:23
+   |
+LL |         ref a @ Some((ref b @ mut c, ref d @ e)) => {}
+   |                       -----^^^-----
+   |                       |       |
+   |                       |       value moved into `c` here
+   |                       value borrowed, by `b`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:62:38
+   |
+LL |         ref a @ Some((ref b @ mut c, ref d @ e)) => {}
+   |                                      -----^^^-
+   |                                      |       |
+   |                                      |       value moved into `e` here
+   |                                      value borrowed, by `d`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:69:9
+   |
+LL |         ref mut a @ Some([b, mut c]) => {}
+   |         ---------^^^^^^^^^-^^-----^^
+   |         |                 |  |
+   |         |                 |  value moved into `c` here
+   |         |                 value moved into `b` here
+   |         value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:13:11
+   |
+LL |     fn f1(ref a @ b: U) {}
+   |           -----^^^-
+   |           |       |
+   |           |       value moved into `b` here
+   |           value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:15:11
+   |
+LL |     fn f2(ref a @ (ref b @ mut c, ref d @ e): (U, U)) {}
+   |           -----^^^^^^^^^^^^-----^^^^^^^^^^-^
+   |           |                |              |
+   |           |                |              value moved into `e` here
+   |           |                value moved into `c` here
+   |           value borrowed, by `a`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:15:20
+   |
+LL |     fn f2(ref a @ (ref b @ mut c, ref d @ e): (U, U)) {}
+   |                    -----^^^-----
+   |                    |       |
+   |                    |       value moved into `c` here
+   |                    value borrowed, by `b`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:15:35
+   |
+LL |     fn f2(ref a @ (ref b @ mut c, ref d @ e): (U, U)) {}
+   |                                   -----^^^-
+   |                                   |       |
+   |                                   |       value moved into `e` here
+   |                                   value borrowed, by `d`, here
+
+error: cannot move out of value because it is borrowed
+  --> $DIR/borrowck-pat-by-move-and-ref.rs:19:11
+   |
+LL |     fn f3(ref mut a @ [b, mut c]: [U; 2]) {}
+   |           ---------^^^^-^^-----^
+   |           |            |  |
+   |           |            |  value moved into `c` here
+   |           |            value moved into `b` here
+   |           value borrowed, by `a`, here
+
+error: aborting due to 25 previous errors
+

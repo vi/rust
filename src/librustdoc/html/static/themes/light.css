@@ -5,13 +5,15 @@ body {
 	color: black;
 }
 
-h1, h2, h3:not(.impl):not(.method):not(.type):not(.tymethod), h4:not(.method):not(.type):not(.tymethod) {
+h1, h2, h3:not(.impl):not(.method):not(.type):not(.tymethod),
+h4:not(.method):not(.type):not(.tymethod) {
 	color: black;
 }
 h1.fqn {
 	border-bottom-color: #D5D5D5;
 }
-h2, h3:not(.impl):not(.method):not(.type):not(.tymethod), h4:not(.method):not(.type):not(.tymethod) {
+h2, h3:not(.impl):not(.method):not(.type):not(.tymethod),
+h4:not(.method):not(.type):not(.tymethod) {
 	border-bottom-color: #DDDDDD;
 }
 
@@ -32,6 +34,33 @@ pre {
 
 .sidebar {
 	background-color: #F1F1F1;
+}
+
+/* Improve the scrollbar display on firefox */
+* {
+	scrollbar-color: rgba(36, 37, 39, 0.6) #e6e6e6;
+}
+
+.sidebar {
+	scrollbar-color: rgba(36, 37, 39, 0.6) #d9d9d9;
+}
+
+.logo-container.rust-logo > img {
+	/* No need for a border in here! */
+}
+
+/* Improve the scrollbar display on webkit-based browsers */
+::-webkit-scrollbar-track {
+	background-color: #ecebeb;
+}
+::-webkit-scrollbar-thumb {
+	background-color: rgba(36, 37, 39, 0.6);
+}
+.sidebar::-webkit-scrollbar-track {
+	background-color: #dcdcdc;
+}
+.sidebar::-webkit-scrollbar-thumb {
+	background-color: rgba(36, 37, 39, 0.6);
 }
 
 .sidebar .current {
@@ -105,6 +134,8 @@ pre {
 .content .highlighted.primitive { background-color: #9aecff; }
 .content .highlighted.keyword { background-color: #f99650; }
 
+.content .stability::before { color: #ccc; }
+
 .content span.enum, .content a.enum, .block a.current.enum { color: #508157; }
 .content span.struct, .content a.struct, .block a.current.struct { color: #ad448e; }
 .content span.type, .content a.type, .block a.current.type { color: #ba5d00; }
@@ -129,7 +160,7 @@ pre {
 pre.rust .comment { color: #8E908C; }
 pre.rust .doccomment { color: #4D4D4C; }
 
-nav {
+nav:not(.sidebar) {
 	border-bottom-color: #e0e0e0;
 }
 nav.main .current {
@@ -144,12 +175,9 @@ a {
 }
 
 .docblock:not(.type-decl) a:not(.srclink):not(.test-arrow),
-.docblock-short a:not(.srclink):not(.test-arrow), .stability a {
+.docblock-short a:not(.srclink):not(.test-arrow), .stability a,
+#help a {
 	color: #3873AD;
-}
-
-.stab.internal a {
-	color: #304FFE;
 }
 
 a.test-arrow {
@@ -177,6 +205,10 @@ a.test-arrow {
 	border-color: #66afe9;
 }
 
+.search-focus:disabled {
+	background-color: #e6e6e6;
+}
+
 #crate-search + .search-input:focus {
 	box-shadow: 0 0 8px #078dd8;
 }
@@ -186,7 +218,6 @@ a.test-arrow {
 }
 
 .stab.unstable { background: #FFF5D6; border-color: #FFC600; }
-.stab.internal { background: #FFB9B3; border-color: #B71C1C; }
 .stab.deprecated { background: #F3DFFF; border-color: #7F0087; }
 .stab.portability { background: #C4ECFF; border-color: #7BA5DB; }
 
@@ -197,6 +228,10 @@ a.test-arrow {
 #help > div {
 	background: #e9e9e9;
 	border-color: #bfbfbf;
+}
+
+#help > div > span {
+	border-bottom-color: #bfbfbf;
 }
 
 .since {
@@ -239,18 +274,27 @@ a.test-arrow:hover{
 
 :target > code, :target > .in-band {
 	background: #FDFFD3;
+	border-right: 3px solid #ffb44c;
 }
 
 pre.compile_fail {
-	border-left: 2px solid rgba(255,0,0,.4);
+	border-left: 2px solid rgba(255,0,0,.5);
 }
 
 pre.compile_fail:hover, .information:hover + pre.compile_fail {
 	border-left: 2px solid #f00;
 }
 
+pre.should_panic {
+	border-left: 2px solid rgba(255,0,0,.5);
+}
+
+pre.should_panic:hover, .information:hover + pre.should_panic {
+	border-left: 2px solid #f00;
+}
+
 pre.ignore {
-	border-left: 2px solid rgba(255,142,0,.4);
+	border-left: 2px solid rgba(255,142,0,.6);
 }
 
 pre.ignore:hover, .information:hover + pre.ignore {
@@ -258,19 +302,27 @@ pre.ignore:hover, .information:hover + pre.ignore {
 }
 
 .tooltip.compile_fail {
-	color: rgba(255,0,0,.3);
+	color: rgba(255,0,0,.5);
 }
 
 .information > .compile_fail:hover {
 	color: #f00;
 }
 
+.tooltip.should_panic {
+	color: rgba(255,0,0,.5);
+}
+
+.information > .should_panic:hover {
+	color: #f00;
+}
+
 .tooltip.ignore {
-	color: rgba(255,142,0,.3);
+	color: rgba(255,142,0,.6);
 }
 
 .information > .ignore:hover {
-	color: rgba(255,142,0,1);
+	color: #ff9200;
 }
 
 .search-failed a {
@@ -278,7 +330,7 @@ pre.ignore:hover, .information:hover + pre.ignore {
 }
 
 .tooltip .tooltiptext {
-	background-color: black;
+	background-color: #000;
 	color: #fff;
 }
 
@@ -286,10 +338,9 @@ pre.ignore:hover, .information:hover + pre.ignore {
 	border-color: transparent black transparent transparent;
 }
 
-.important-traits .tooltip .tooltiptext {
-	background-color: white;
-	color: black;
-	border-color: black;
+.notable-traits-tooltiptext {
+	background-color: #eee;
+	border-color: #999;
 }
 
 #titles > div:not(.selected) {
@@ -303,33 +354,6 @@ pre.ignore:hover, .information:hover + pre.ignore {
 
 #titles > div > div.count {
 	color: #888;
-}
-
-.modal {
-	background-color: rgba(0,0,0,0.3);
-}
-
-.modal-content {
-	background-color: #eee;
-	border-color: #999;
-}
-
-.modal-content > .close {
-	background-color: #eee;
-	border-color: #999;
-}
-
-.modal-content > .close:hover {
-	background-color: #ff1f1f;
-	color: white;
-}
-
-.modal-content > .whiter {
-	background-color: #eee;
-}
-
-.modal-content > .close:hover + .whiter {
-	background-color: #ff1f1f;
 }
 
 @media (max-width: 700px) {
@@ -358,13 +382,14 @@ kbd {
 	box-shadow-color: #c6cbd1;
 }
 
-#theme-picker, #settings-menu {
+#theme-picker, #settings-menu, .help-button {
 	border-color: #e0e0e0;
 	background-color: #fff;
 }
 
 #theme-picker:hover, #theme-picker:focus,
-#settings-menu:hover, #settings-menu:focus {
+#settings-menu:hover, #settings-menu:focus,
+.help-button:hover, .help-button:focus {
 	border-color: #717171;
 }
 
@@ -418,4 +443,7 @@ div.files > a:hover, div.name:hover {
 }
 div.files > .selected {
 	background-color: #fff;
+}
+.setting-line > .title {
+	border-bottom-color: #D5D5D5;
 }

@@ -1,85 +1,49 @@
-error[E0277]: `<L1 as Lam<&'a u8>>::App` doesn't implement `std::fmt::Debug`
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:32:6
+error[E0277]: `<<Self as Case1>::C as Iterator>::Item` is not an iterator
+  --> $DIR/bad-bounds-on-assoc-in-trait.rs:27:5
    |
-LL | impl Case1 for S1 {
-   |      ^^^^^ `<L1 as Lam<&'a u8>>::App` cannot be formatted using `{:?}` because it doesn't implement `std::fmt::Debug`
+LL |     type C: Clone + Iterator<Item: Send + Iterator<Item: for<'a> Lam<&'a u8, App: Debug>> + Sync>;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `<<Self as Case1>::C as Iterator>::Item` is not an iterator
    |
-   = help: the trait `for<'a> std::fmt::Debug` is not implemented for `<L1 as Lam<&'a u8>>::App`
+   = help: the trait `Iterator` is not implemented for `<<Self as Case1>::C as Iterator>::Item`
+help: consider further restricting the associated type
+   |
+LL | trait Case1 where <<Self as Case1>::C as Iterator>::Item: Iterator {
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: `<<T as Case1>::C as std::iter::Iterator>::Item` is not an iterator
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:37:1
+error[E0277]: `<<Self as Case1>::C as Iterator>::Item` cannot be sent between threads safely
+  --> $DIR/bad-bounds-on-assoc-in-trait.rs:27:36
    |
-LL | / fn assume_case1<T: Case1>() {
-LL | |
-LL | |
-LL | |
-...  |
-LL | |     assert_c::<_, _, _, T::C>();
-LL | | }
-   | |_^ `<<T as Case1>::C as std::iter::Iterator>::Item` is not an iterator
+LL |     type C: Clone + Iterator<Item: Send + Iterator<Item: for<'a> Lam<&'a u8, App: Debug>> + Sync>;
+   |                                    ^^^^ `<<Self as Case1>::C as Iterator>::Item` cannot be sent between threads safely
+   | 
+  ::: $SRC_DIR/core/src/marker.rs:LL:COL
    |
-   = help: the trait `std::iter::Iterator` is not implemented for `<<T as Case1>::C as std::iter::Iterator>::Item`
-   = help: consider adding a `where <<T as Case1>::C as std::iter::Iterator>::Item: std::iter::Iterator` bound
+LL | pub unsafe auto trait Send {
+   | -------------------------- required by this bound in `Send`
+   |
+   = help: the trait `Send` is not implemented for `<<Self as Case1>::C as Iterator>::Item`
+help: consider further restricting the associated type
+   |
+LL | trait Case1 where <<Self as Case1>::C as Iterator>::Item: Send {
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: `<<T as Case1>::C as std::iter::Iterator>::Item` cannot be sent between threads safely
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:37:1
+error[E0277]: `<<Self as Case1>::C as Iterator>::Item` cannot be shared between threads safely
+  --> $DIR/bad-bounds-on-assoc-in-trait.rs:27:93
    |
-LL | / fn assume_case1<T: Case1>() {
-LL | |
-LL | |
-LL | |
-...  |
-LL | |     assert_c::<_, _, _, T::C>();
-LL | | }
-   | |_^ `<<T as Case1>::C as std::iter::Iterator>::Item` cannot be sent between threads safely
+LL |     type C: Clone + Iterator<Item: Send + Iterator<Item: for<'a> Lam<&'a u8, App: Debug>> + Sync>;
+   |                                                                                             ^^^^ `<<Self as Case1>::C as Iterator>::Item` cannot be shared between threads safely
+   | 
+  ::: $SRC_DIR/core/src/marker.rs:LL:COL
    |
-   = help: the trait `std::marker::Send` is not implemented for `<<T as Case1>::C as std::iter::Iterator>::Item`
-   = help: consider adding a `where <<T as Case1>::C as std::iter::Iterator>::Item: std::marker::Send` bound
-note: required by `Case1`
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:22:1
+LL | pub unsafe auto trait Sync {
+   | -------------------------- required by this bound in `Sync`
    |
-LL | trait Case1 {
-   | ^^^^^^^^^^^
+   = help: the trait `Sync` is not implemented for `<<Self as Case1>::C as Iterator>::Item`
+help: consider further restricting the associated type
+   |
+LL | trait Case1 where <<Self as Case1>::C as Iterator>::Item: Sync {
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: `<<T as Case1>::C as std::iter::Iterator>::Item` cannot be shared between threads safely
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:37:1
-   |
-LL | / fn assume_case1<T: Case1>() {
-LL | |
-LL | |
-LL | |
-...  |
-LL | |     assert_c::<_, _, _, T::C>();
-LL | | }
-   | |_^ `<<T as Case1>::C as std::iter::Iterator>::Item` cannot be shared between threads safely
-   |
-   = help: the trait `std::marker::Sync` is not implemented for `<<T as Case1>::C as std::iter::Iterator>::Item`
-   = help: consider adding a `where <<T as Case1>::C as std::iter::Iterator>::Item: std::marker::Sync` bound
-note: required by `Case1`
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:22:1
-   |
-LL | trait Case1 {
-   | ^^^^^^^^^^^
-
-error[E0277]: `<_ as Lam<&'a u8>>::App` doesn't implement `std::fmt::Debug`
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:37:1
-   |
-LL | / fn assume_case1<T: Case1>() {
-LL | |
-LL | |
-LL | |
-...  |
-LL | |     assert_c::<_, _, _, T::C>();
-LL | | }
-   | |_^ `<_ as Lam<&'a u8>>::App` cannot be formatted using `{:?}` because it doesn't implement `std::fmt::Debug`
-   |
-   = help: the trait `for<'a> std::fmt::Debug` is not implemented for `<_ as Lam<&'a u8>>::App`
-note: required by `Case1`
-  --> $DIR/bad-bounds-on-assoc-in-trait.rs:22:1
-   |
-LL | trait Case1 {
-   | ^^^^^^^^^^^
-
-error: aborting due to 5 previous errors
+error: aborting due to 3 previous errors
 
 For more information about this error, try `rustc --explain E0277`.

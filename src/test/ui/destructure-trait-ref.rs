@@ -26,21 +26,19 @@ fn main() {
     let &x = &1isize as &dyn T;      //~ ERROR type `&dyn T` cannot be dereferenced
     let &&x = &(&1isize as &dyn T);  //~ ERROR type `&dyn T` cannot be dereferenced
     let box x = box 1isize as Box<dyn T>;
-    //~^ ERROR type `std::boxed::Box<dyn T>` cannot be dereferenced
+    //~^ ERROR type `Box<dyn T>` cannot be dereferenced
 
     // n > m
     let &&x = &1isize as &dyn T;
     //~^ ERROR mismatched types
-    //~| expected type `dyn T`
-    //~| found type `&_`
-    //~| expected trait T, found reference
+    //~| expected trait object `dyn T`
+    //~| found reference `&_`
     let &&&x = &(&1isize as &dyn T);
     //~^ ERROR mismatched types
-    //~| expected type `dyn T`
-    //~| found type `&_`
-    //~| expected trait T, found reference
+    //~| expected trait object `dyn T`
+    //~| found reference `&_`
     let box box x = box 1isize as Box<dyn T>;
     //~^ ERROR mismatched types
-    //~| expected type `dyn T`
-    //~| found type `std::boxed::Box<_>`
+    //~| expected trait object `dyn T`
+    //~| found struct `Box<_>`
 }

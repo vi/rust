@@ -1,6 +1,7 @@
 // Regression test for #53789.
 //
-// build-pass (FIXME(62277): could be check-pass?)
+// check-pass
+// ignore-compare-mode-chalk
 
 use std::collections::BTreeMap;
 use std::ops::Range;

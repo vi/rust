@@ -1,5 +1,8 @@
-#![feature(const_generics)]
-//~^ WARN the feature `const_generics` is incomplete and may cause the compiler to crash
+// revisions: full min
+
+#![cfg_attr(full, feature(const_generics))]
+#![cfg_attr(full, allow(incomplete_features))]
+#![cfg_attr(min, feature(min_const_generics))]
 
 fn i32_identity<const X: i32>() -> i32 {
     5
@@ -10,7 +13,7 @@ fn foo_a() {
 }
 
 fn foo_b() {
-    i32_identity::<1 + 2>(); //~ ERROR expected one of `,` or `>`, found `+`
+    i32_identity::<1 + 2>(); //~ ERROR expressions must be enclosed in braces
 }
 
 fn foo_c() {

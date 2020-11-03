@@ -12,5 +12,5 @@ fn main() {
 }
 
 #[lang = "eh_personality"] extern fn eh_personality() {}
-#[lang = "eh_unwind_resume"] extern fn eh_unwind_resume() {}
+#[lang = "eh_catch_typeinfo"] static EH_CATCH_TYPEINFO: u8 = 0;
 #[lang = "panic_impl"] fn panic_impl(panic: &PanicInfo) -> ! { loop {} }

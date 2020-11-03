@@ -4,12 +4,12 @@ error: `ambiguous` is both a struct and a function
 LL | /// [`ambiguous`] is ambiguous.
    |      ^^^^^^^^^^^ ambiguous link
    |
-note: lint level defined here
+note: the lint level is defined here
   --> $DIR/intra-links-ambiguity.rs:1:9
    |
-LL | #![deny(intra_doc_link_resolution_failure)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-help: to link to the struct, prefix with the item type
+LL | #![deny(broken_intra_doc_links)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+help: to link to the struct, prefix with `struct@`
    |
 LL | /// [`struct@ambiguous`] is ambiguous.
    |      ^^^^^^^^^^^^^^^^^^
@@ -23,7 +23,8 @@ error: `ambiguous` is both a struct and a function
    |
 LL | /// [ambiguous] is ambiguous.
    |      ^^^^^^^^^ ambiguous link
-help: to link to the struct, prefix with the item type
+   |
+help: to link to the struct, prefix with `struct@`
    |
 LL | /// [struct@ambiguous] is ambiguous.
    |      ^^^^^^^^^^^^^^^^
@@ -37,7 +38,8 @@ error: `multi_conflict` is a struct, a function, and a macro
    |
 LL | /// [`multi_conflict`] is a three-way conflict.
    |      ^^^^^^^^^^^^^^^^ ambiguous link
-help: to link to the struct, prefix with the item type
+   |
+help: to link to the struct, prefix with `struct@`
    |
 LL | /// [`struct@multi_conflict`] is a three-way conflict.
    |      ^^^^^^^^^^^^^^^^^^^^^^^
@@ -55,11 +57,12 @@ error: `type_and_value` is both a module and a constant
    |
 LL | /// Ambiguous [type_and_value].
    |                ^^^^^^^^^^^^^^ ambiguous link
-help: to link to the module, prefix with the item type
    |
-LL | /// Ambiguous [module@type_and_value].
-   |                ^^^^^^^^^^^^^^^^^^^^^
-help: to link to the constant, prefix with the item type
+help: to link to the module, prefix with `mod@`
+   |
+LL | /// Ambiguous [mod@type_and_value].
+   |                ^^^^^^^^^^^^^^^^^^
+help: to link to the constant, prefix with `const@`
    |
 LL | /// Ambiguous [const@type_and_value].
    |                ^^^^^^^^^^^^^^^^^^^^
@@ -69,7 +72,8 @@ error: `foo::bar` is both an enum and a function
    |
 LL | /// Ambiguous non-implied shortcut link [`foo::bar`].
    |                                          ^^^^^^^^^^ ambiguous link
-help: to link to the enum, prefix with the item type
+   |
+help: to link to the enum, prefix with `enum@`
    |
 LL | /// Ambiguous non-implied shortcut link [`enum@foo::bar`].
    |                                          ^^^^^^^^^^^^^^^
@@ -78,5 +82,20 @@ help: to link to the function, add parentheses
 LL | /// Ambiguous non-implied shortcut link [`foo::bar()`].
    |                                          ^^^^^^^^^^^^
 
-error: aborting due to 5 previous errors
+error: `true` is both a module and a builtin type
+  --> $DIR/intra-links-ambiguity.rs:38:6
+   |
+LL | /// [true]
+   |      ^^^^ ambiguous link
+   |
+help: to link to the module, prefix with `mod@`
+   |
+LL | /// [mod@true]
+   |      ^^^^^^^^
+help: to link to the builtin type, prefix with `prim@`
+   |
+LL | /// [prim@true]
+   |      ^^^^^^^^^
+
+error: aborting due to 6 previous errors
 

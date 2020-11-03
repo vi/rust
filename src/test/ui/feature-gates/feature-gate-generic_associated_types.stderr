@@ -4,7 +4,7 @@ error[E0658]: generic associated types are unstable
 LL |     type Pointer<T>: Deref<Target = T>;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
 error[E0658]: generic associated types are unstable
@@ -13,7 +13,7 @@ error[E0658]: generic associated types are unstable
 LL |     type Pointer2<T>: Deref<Target = T> where T: Clone, U: Clone;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
 error[E0658]: where clauses on associated types are unstable
@@ -22,7 +22,7 @@ error[E0658]: where clauses on associated types are unstable
 LL |     type Pointer2<T>: Deref<Target = T> where T: Clone, U: Clone;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
 error[E0658]: generic associated types are unstable
@@ -31,7 +31,7 @@ error[E0658]: generic associated types are unstable
 LL |     type Pointer<Usize> = Box<Usize>;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
 error[E0658]: generic associated types are unstable
@@ -40,27 +40,39 @@ error[E0658]: generic associated types are unstable
 LL |     type Pointer2<U32> = Box<U32>;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
 error[E0658]: where clauses on associated types are unstable
-  --> $DIR/feature-gate-generic_associated_types.rs:21:5
+  --> $DIR/feature-gate-generic_associated_types.rs:22:5
    |
 LL |     type Assoc where Self: Sized;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
 error[E0658]: where clauses on associated types are unstable
-  --> $DIR/feature-gate-generic_associated_types.rs:26:5
+  --> $DIR/feature-gate-generic_associated_types.rs:27:5
    |
 LL |     type Assoc where Self: Sized = Foo;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: for more information, see https://github.com/rust-lang/rust/issues/44265
+   = note: see issue #44265 <https://github.com/rust-lang/rust/issues/44265> for more information
    = help: add `#![feature(generic_associated_types)]` to the crate attributes to enable
 
-error: aborting due to 7 previous errors
+error[E0277]: the trait bound `U32: Clone` is not satisfied
+  --> $DIR/feature-gate-generic_associated_types.rs:16:5
+   |
+LL |     type Pointer2<U32> = Box<U32>;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `U32`
+   |
+help: consider restricting type parameter `U32`
+   |
+LL |     type Pointer2<U32: Clone> = Box<U32>;
+   |                      ^^^^^^^
 
-For more information about this error, try `rustc --explain E0658`.
+error: aborting due to 8 previous errors
+
+Some errors have detailed explanations: E0277, E0658.
+For more information about an error, try `rustc --explain E0277`.

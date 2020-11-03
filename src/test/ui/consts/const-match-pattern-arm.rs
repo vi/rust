@@ -1,17 +1,13 @@
-#![allow(warnings)]
+// check-pass
 
-const x: bool = match Some(true) {
-    //~^ ERROR: constant contains unimplemented expression type [E0019]
+const _: bool = match Some(true) {
     Some(value) => true,
-    //~^ ERROR: constant contains unimplemented expression type [E0019]
     _ => false
 };
 
-const y: bool = {
+const _: bool = {
     match Some(true) {
-    //~^ ERROR: constant contains unimplemented expression type [E0019]
         Some(value) => true,
-        //~^ ERROR: constant contains unimplemented expression type [E0019]
         _ => false
     }
 };

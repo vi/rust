@@ -12,6 +12,7 @@
 // revisions, don't worry about the --compare-mode=nll on this test.
 
 // ignore-compare-mode-nll
+// ignore-compare-mode-polonius
 
 //[nll]compile-flags: -Z borrowck=mir
 
@@ -36,8 +37,9 @@ pub struct Map<S, F> {
 }
 
 impl<'a, A, F, T> Stream for &'a mut Map<A, F>
-where &'a mut A: Stream,
-      F: FnMut(<&'a mut A as Stream>::Item) -> T,
+where
+    &'a mut A: Stream,
+    F: FnMut(<&'a mut A as Stream>::Item) -> T,
 {
     type Item = T;
     fn next(self) -> Option<T> {
@@ -54,8 +56,9 @@ pub struct Filter<S, F> {
 }
 
 impl<'a, A, F, T> Stream for &'a mut Filter<A, F>
-where for<'b> &'b mut A: Stream<Item=T>, // <---- BAD
-      F: FnMut(&T) -> bool,
+where
+    for<'b> &'b mut A: Stream<Item = T>, // <---- BAD
+    F: FnMut(&T) -> bool,
 {
     type Item = <&'a mut A as Stream>::Item;
     fn next(self) -> Option<Self::Item> {
@@ -68,29 +71,29 @@ where for<'b> &'b mut A: Stream<Item=T>, // <---- BAD
     }
 }
 
-pub trait StreamExt where for<'b> &'b mut Self: Stream {
-    fn map<F>(self, func: F) -> Map<Self, F>
-    where Self: Sized,
-    for<'a> &'a mut Map<Self, F>: Stream,
+pub trait StreamExt
+where
+    for<'b> &'b mut Self: Stream,
+{
+    fn mapx<F>(self, func: F) -> Map<Self, F>
+    where
+        Self: Sized,
+        for<'a> &'a mut Map<Self, F>: Stream,
     {
-        Map {
-            func: func,
-            stream: self,
-        }
+        Map { func: func, stream: self }
     }
 
-    fn filter<F>(self, func: F) -> Filter<Self, F>
-    where Self: Sized,
-    for<'a> &'a mut Filter<Self, F>: Stream,
+    fn filterx<F>(self, func: F) -> Filter<Self, F>
+    where
+        Self: Sized,
+        for<'a> &'a mut Filter<Self, F>: Stream,
     {
-        Filter {
-            func: func,
-            stream: self,
-        }
+        Filter { func: func, stream: self }
     }
 
-    fn count(mut self) -> usize
-    where Self: Sized,
+    fn countx(mut self) -> usize
+    where
+        Self: Sized,
     {
         let mut count = 0;
         while let Some(_) = self.next() {
@@ -100,16 +103,44 @@ pub trait StreamExt where for<'b> &'b mut Self: Stream {
     }
 }
 
-impl<T> StreamExt for T where for<'a> &'a mut T: Stream { }
+impl<T> StreamExt for T where for<'a> &'a mut T: Stream {}
 
-fn main() {
-    let source = Repeat(10);
-    let map = source.map(|x: &_| x);
-    //[migrate]~^ ERROR implementation of `Stream` is not general enough
-    //[migrate]~| NOTE  `Stream` would have to be implemented for the type `&'0 mut Map
-    //[migrate]~| NOTE  but `Stream` is actually implemented for the type `&'1
-    let filter = map.filter(|x: &_| true);
-    //[nll]~^ ERROR higher-ranked subtype error
-    let count = filter.count(); // Assert that we still have a valid stream.
-    //[nll]~^ ERROR higher-ranked subtype error
+fn identity<T>(x: &T) -> &T {
+    x
 }
+
+fn variant1() {
+    let source = Repeat(10);
+
+    // Here, the call to `mapx` returns a type `T` to which `StreamExt`
+    // is not applicable, because `for<'b> &'b mut T: Stream`) doesn't hold.
+    //
+    // More concretely, the type `T` is `Map<Repeat, Closure>`, and
+    // the where clause doesn't hold because the signature of the
+    // closure gets inferred to a signature like `|&'_ Stream| -> &'_`
+    // for some specific `'_`, rather than a more generic
+    // signature.
+    //
+    // Why *exactly* we opt for this signature is a bit unclear to me,
+    // we deduce it somehow from a reuqirement that `Map: Stream` I
+    // guess.
+    let map = source.mapx(|x: &_| x);
+    let filter = map.filterx(|x: &_| true);
+    //[migrate]~^ ERROR no method named `filterx`
+    //[nll]~^^ ERROR no method named `filterx`
+}
+
+fn variant2() {
+    let source = Repeat(10);
+
+    // Here, we use a function, which is not subject to the vagaries
+    // of closure signature inference. In this case, we get the error
+    // on `countx` as, I think, the test originally expected.
+    let map = source.mapx(identity);
+    let filter = map.filterx(|x: &_| true);
+    let count = filter.countx();
+    //[migrate]~^ ERROR no method named `countx`
+    //[nll]~^^ ERROR no method named `countx`
+}
+
+fn main() {}

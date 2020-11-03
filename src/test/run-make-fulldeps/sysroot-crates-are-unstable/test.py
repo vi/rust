@@ -5,7 +5,7 @@ from os.path import isfile, join
 from subprocess import PIPE, Popen
 
 
-# This is a whitelist of files which are stable crates or simply are not crates,
+# This is n list of files which are stable crates or simply are not crates,
 # we don't check for the instability of these crates as they're all stable!
 STABLE_CRATES = ['std', 'alloc', 'core', 'proc_macro',
                  'rsbegin.o', 'rsend.o', 'dllcrt2.o', 'crt2.o', 'clang_rt']
@@ -33,7 +33,7 @@ def check_lib(lib):
     print('verifying if {} is an unstable crate'.format(lib['name']))
     stdout, stderr = exec_command([os.environ['RUSTC'], '-', '--crate-type', 'rlib',
                                    '--extern', '{}={}'.format(lib['name'], lib['path'])],
-                                  to_input='extern crate {};'.format(lib['name']))
+                                  to_input=('extern crate {};'.format(lib['name'])).encode('utf-8'))
     if not 'use of unstable library feature' in '{}{}'.format(stdout, stderr):
         print('crate {} "{}" is not unstable'.format(lib['name'], lib['path']))
         print('{}{}'.format(stdout, stderr))

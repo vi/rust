@@ -73,7 +73,6 @@ fn f() {
     */
 
 
-
     /* */
 
     /*
@@ -81,7 +80,6 @@ fn f() {
       Space 6+2:                     compare A
       Ogham Space Mark 6+2: compare B
     */
-
     /* */
 
     /*
@@ -99,8 +97,5 @@ fn main() {
          '\u{2004}', '\u{2005}', '\u{2006}', '\u{2007}', '\u{2008}',
          '\u{2009}', '\u{200A}', '\u{2028}', '\u{2029}', '\u{202F}',
          '\u{205F}', '\u{3000}'];
-    for c in &chars {
-        let ws = c.is_whitespace();
-        println!("{} {}" , c , ws);
-    }
+    for c in &chars { let ws = c.is_whitespace(); println!("{} {}", c, ws); }
 }

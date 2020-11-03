@@ -5,21 +5,16 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use test::ColorConfig;
 use crate::util::PathBufExt;
+use test::ColorConfig;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Mode {
     CompileFail,
     RunFail,
-    /// This now behaves like a `ui` test that has an implict `// run-pass`.
-    RunPass,
     RunPassValgrind,
     Pretty,
-    DebugInfoCdb,
-    DebugInfoGdbLldb,
-    DebugInfoGdb,
-    DebugInfoLldb,
+    DebugInfo,
     Codegen,
     Rustdoc,
     CodegenUnits,
@@ -33,14 +28,10 @@ pub enum Mode {
 
 impl Mode {
     pub fn disambiguator(self) -> &'static str {
-        // Run-pass and pretty run-pass tests could run concurrently, and if they do,
-        // they need to keep their output segregated. Same is true for debuginfo tests that
-        // can be run on cdb, gdb, and lldb.
+        // Pretty-printing tests could run concurrently, and if they do,
+        // they need to keep their output segregated.
         match self {
             Pretty => ".pretty",
-            DebugInfoCdb => ".cdb",
-            DebugInfoGdb => ".gdb",
-            DebugInfoLldb => ".lldb",
             _ => "",
         }
     }
@@ -52,13 +43,9 @@ impl FromStr for Mode {
         match s {
             "compile-fail" => Ok(CompileFail),
             "run-fail" => Ok(RunFail),
-            "run-pass" => Ok(RunPass),
             "run-pass-valgrind" => Ok(RunPassValgrind),
             "pretty" => Ok(Pretty),
-            "debuginfo-cdb" => Ok(DebugInfoCdb),
-            "debuginfo-gdb+lldb" => Ok(DebugInfoGdbLldb),
-            "debuginfo-lldb" => Ok(DebugInfoLldb),
-            "debuginfo-gdb" => Ok(DebugInfoGdb),
+            "debuginfo" => Ok(DebugInfo),
             "codegen" => Ok(Codegen),
             "rustdoc" => Ok(Rustdoc),
             "codegen-units" => Ok(CodegenUnits),
@@ -78,13 +65,9 @@ impl fmt::Display for Mode {
         let s = match *self {
             CompileFail => "compile-fail",
             RunFail => "run-fail",
-            RunPass => "run-pass",
             RunPassValgrind => "run-pass-valgrind",
             Pretty => "pretty",
-            DebugInfoCdb => "debuginfo-cdb",
-            DebugInfoGdbLldb => "debuginfo-gdb+lldb",
-            DebugInfoGdb => "debuginfo-gdb",
-            DebugInfoLldb => "debuginfo-lldb",
+            DebugInfo => "debuginfo",
             Codegen => "codegen",
             Rustdoc => "rustdoc",
             CodegenUnits => "codegen-units",
@@ -129,10 +112,18 @@ impl fmt::Display for PassMode {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+pub enum FailMode {
+    Check,
+    Build,
+    Run,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum CompareMode {
     Nll,
     Polonius,
+    Chalk,
 }
 
 impl CompareMode {
@@ -140,6 +131,7 @@ impl CompareMode {
         match *self {
             CompareMode::Nll => "nll",
             CompareMode::Polonius => "polonius",
+            CompareMode::Chalk => "chalk",
         }
     }
 
@@ -147,13 +139,37 @@ impl CompareMode {
         match s.as_str() {
             "nll" => CompareMode::Nll,
             "polonius" => CompareMode::Polonius,
+            "chalk" => CompareMode::Chalk,
             x => panic!("unknown --compare-mode option: {}", x),
         }
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Debugger {
+    Cdb,
+    Gdb,
+    Lldb,
+}
+
+impl Debugger {
+    fn to_str(&self) -> &'static str {
+        match self {
+            Debugger::Cdb => "cdb",
+            Debugger::Gdb => "gdb",
+            Debugger::Lldb => "lldb",
+        }
+    }
+}
+
+impl fmt::Display for Debugger {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self.to_str(), f)
+    }
+}
+
 /// Configuration for compiletest
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Config {
     /// `true` to to overwrite stderr/stdout files instead of complaining about changes in output.
     pub bless: bool,
@@ -169,6 +185,9 @@ pub struct Config {
 
     /// The rustdoc executable.
     pub rustdoc_path: Option<PathBuf>,
+
+    /// The rust-demangler executable.
+    pub rust_demangler_path: Option<PathBuf>,
 
     /// The Python executable to use for LLDB.
     pub lldb_python: String,
@@ -202,8 +221,11 @@ pub struct Config {
     /// The name of the stage being built (stage1, etc)
     pub stage_id: String,
 
-    /// The test mode, compile-fail, run-fail, run-pass
+    /// The test mode, compile-fail, run-fail, ui
     pub mode: Mode,
+
+    /// The debugger to use in debuginfo mode. Unset otherwise.
+    pub debugger: Option<Debugger>,
 
     /// Run ignored tests
     pub run_ignored: bool,
@@ -239,6 +261,9 @@ pub struct Config {
     /// Path to / name of the Microsoft Console Debugger (CDB) executable
     pub cdb: Option<OsString>,
 
+    /// Version of CDB
+    pub cdb_version: Option<[u16; 4]>,
+
     /// Path to / name of the GDB executable
     pub gdb: Option<String>,
 
@@ -249,13 +274,13 @@ pub struct Config {
     pub gdb_native_rust: bool,
 
     /// Version of LLDB
-    pub lldb_version: Option<String>,
+    pub lldb_version: Option<u32>,
 
     /// Whether LLDB has native rust support
     pub lldb_native_rust: bool,
 
     /// Version of LLVM
-    pub llvm_version: Option<String>,
+    pub llvm_version: Option<u32>,
 
     /// Is LLVM a system LLVM
     pub system_llvm: bool,
@@ -303,7 +328,6 @@ pub struct Config {
     pub ar: String,
     pub linker: Option<String>,
     pub llvm_components: String,
-    pub llvm_cxxflags: String,
 
     /// Path to a NodeJS executable. Used for JS doctests, emscripten and WASM tests
     pub nodejs: Option<String>,
@@ -337,10 +361,12 @@ pub fn expected_output_path(
     testpaths.file.with_extension(extension)
 }
 
-pub const UI_EXTENSIONS: &[&str] = &[UI_STDERR, UI_STDOUT, UI_FIXED];
+pub const UI_EXTENSIONS: &[&str] = &[UI_STDERR, UI_STDOUT, UI_FIXED, UI_RUN_STDERR, UI_RUN_STDOUT];
 pub const UI_STDERR: &str = "stderr";
 pub const UI_STDOUT: &str = "stdout";
 pub const UI_FIXED: &str = "fixed";
+pub const UI_RUN_STDERR: &str = "run.stderr";
+pub const UI_RUN_STDOUT: &str = "run.stdout";
 
 /// Absolute path to the directory where all output for all tests in the given
 /// `relative_dir` group should reside. Example:
@@ -357,9 +383,11 @@ pub fn output_testname_unique(
     revision: Option<&str>,
 ) -> PathBuf {
     let mode = config.compare_mode.as_ref().map_or("", |m| m.to_str());
+    let debugger = config.debugger.as_ref().map_or("", |m| m.to_str());
     PathBuf::from(&testpaths.file.file_stem().unwrap())
         .with_extra_extension(revision.unwrap_or(""))
         .with_extra_extension(mode)
+        .with_extra_extension(debugger)
 }
 
 /// Absolute path to the directory where all output for the given

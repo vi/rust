@@ -7,6 +7,9 @@ edition = "2018"
 [dependencies]
 rustdoc = { path = "../../librustdoc" }
 
+[build-dependencies]
+walkdir = "2"
+
 [[bin]]
 name = "error_index_generator"
 path = "main.rs"

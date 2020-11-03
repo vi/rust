@@ -14,43 +14,47 @@ use crate::dist::{self, pkgname, sanitize_sh, tmpdir};
 use crate::Compiler;
 
 use crate::builder::{Builder, RunConfig, ShouldRun, Step};
-use crate::cache::Interned;
-use crate::config::Config;
+use crate::config::{Config, TargetSelection};
 
-pub fn install_docs(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_docs(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "docs", "rust-docs", stage, Some(host));
 }
 
-pub fn install_std(builder: &Builder<'_>, stage: u32, target: Interned<String>) {
+pub fn install_std(builder: &Builder<'_>, stage: u32, target: TargetSelection) {
     install_sh(builder, "std", "rust-std", stage, Some(target));
 }
 
-pub fn install_cargo(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_cargo(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "cargo", "cargo", stage, Some(host));
 }
 
-pub fn install_rls(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_rls(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "rls", "rls", stage, Some(host));
 }
-pub fn install_clippy(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+
+pub fn install_rust_analyzer(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
+    install_sh(builder, "rust-analyzer", "rust-analyzer", stage, Some(host));
+}
+
+pub fn install_clippy(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "clippy", "clippy", stage, Some(host));
 }
-pub fn install_miri(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_miri(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "miri", "miri", stage, Some(host));
 }
 
-pub fn install_rustfmt(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_rustfmt(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "rustfmt", "rustfmt", stage, Some(host));
 }
 
-pub fn install_analysis(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_analysis(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "analysis", "rust-analysis", stage, Some(host));
 }
 
 pub fn install_src(builder: &Builder<'_>, stage: u32) {
     install_sh(builder, "src", "rust-src", stage, None);
 }
-pub fn install_rustc(builder: &Builder<'_>, stage: u32, host: Interned<String>) {
+pub fn install_rustc(builder: &Builder<'_>, stage: u32, host: TargetSelection) {
     install_sh(builder, "rustc", "rustc", stage, Some(host));
 }
 
@@ -59,7 +63,7 @@ fn install_sh(
     package: &str,
     name: &str,
     stage: u32,
-    host: Option<Interned<String>>,
+    host: Option<TargetSelection>,
 ) {
     builder.info(&format!("Install {} stage{} ({:?})", package, stage, host));
 
@@ -67,16 +71,18 @@ fn install_sh(
     let sysconfdir_default = PathBuf::from("/etc");
     let datadir_default = PathBuf::from("share");
     let docdir_default = datadir_default.join("doc/rust");
-    let bindir_default = PathBuf::from("bin");
     let libdir_default = PathBuf::from("lib");
     let mandir_default = datadir_default.join("man");
     let prefix = builder.config.prefix.as_ref().map_or(prefix_default, |p| {
-        fs::canonicalize(p).unwrap_or_else(|_| panic!("could not canonicalize {}", p.display()))
+        fs::create_dir_all(p)
+            .unwrap_or_else(|err| panic!("could not create {}: {}", p.display(), err));
+        fs::canonicalize(p)
+            .unwrap_or_else(|err| panic!("could not canonicalize {}: {}", p.display(), err))
     });
     let sysconfdir = builder.config.sysconfdir.as_ref().unwrap_or(&sysconfdir_default);
     let datadir = builder.config.datadir.as_ref().unwrap_or(&datadir_default);
     let docdir = builder.config.docdir.as_ref().unwrap_or(&docdir_default);
-    let bindir = builder.config.bindir.as_ref().unwrap_or(&bindir_default);
+    let bindir = &builder.config.bindir;
     let libdir = builder.config.libdir.as_ref().unwrap_or(&libdir_default);
     let mandir = builder.config.mandir.as_ref().unwrap_or(&mandir_default);
 
@@ -101,7 +107,7 @@ fn install_sh(
 
     t!(fs::create_dir_all(&empty_dir));
     let package_name = if let Some(host) = host {
-        format!("{}-{}", pkgname(builder, name), host)
+        format!("{}-{}", pkgname(builder, name), host.triple)
     } else {
         pkgname(builder, name)
     };
@@ -127,9 +133,8 @@ fn add_destdir(path: &Path, destdir: &Option<PathBuf>) -> PathBuf {
         None => return path.to_path_buf(),
     };
     for part in path.components() {
-        match part {
-            Component::Normal(s) => ret.push(s),
-            _ => {}
+        if let Component::Normal(s) = part {
+            ret.push(s)
         }
     }
     ret
@@ -146,7 +151,7 @@ macro_rules! install {
             #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
         pub struct $name {
             pub compiler: Compiler,
-            pub target: Interned<String>,
+            pub target: TargetSelection,
         }
 
         impl $name {
@@ -154,11 +159,6 @@ macro_rules! install {
             fn should_build(config: &Config) -> bool {
                 config.extended && config.tools.as_ref()
                     .map_or(true, |t| t.contains($path))
-            }
-
-            #[allow(dead_code)]
-            fn should_install(builder: &Builder<'_>) -> bool {
-                builder.config.tools.as_ref().map_or(false, |t| t.contains($path))
             }
         }
 
@@ -192,7 +192,7 @@ install!((self, builder, _config),
         builder.ensure(dist::Docs { host: self.target });
         install_docs(builder, self.compiler.stage, self.target);
     };
-    Std, "src/libstd", true, only_hosts: true, {
+    Std, "library/std", true, only_hosts: false, {
         for target in &builder.targets {
             builder.ensure(dist::Std {
                 compiler: self.compiler,
@@ -206,8 +206,7 @@ install!((self, builder, _config),
         install_cargo(builder, self.compiler.stage, self.target);
     };
     Rls, "rls", Self::should_build(_config), only_hosts: true, {
-        if builder.ensure(dist::Rls { compiler: self.compiler, target: self.target }).is_some() ||
-            Self::should_install(builder) {
+        if builder.ensure(dist::Rls { compiler: self.compiler, target: self.target }).is_some() {
             install_rls(builder, self.compiler.stage, self.target);
         } else {
             builder.info(
@@ -215,21 +214,16 @@ install!((self, builder, _config),
             );
         }
     };
+    RustAnalyzer, "rust-analyzer", Self::should_build(_config), only_hosts: true, {
+        builder.ensure(dist::RustAnalyzer { compiler: self.compiler, target: self.target });
+        install_rust_analyzer(builder, self.compiler.stage, self.target);
+    };
     Clippy, "clippy", Self::should_build(_config), only_hosts: true, {
-        if builder.ensure(dist::Clippy {
-            compiler: self.compiler,
-            target: self.target,
-        }).is_some() || Self::should_install(builder) {
-            install_clippy(builder, self.compiler.stage, self.target);
-        } else {
-            builder.info(
-                &format!("skipping Install clippy stage{} ({})", self.compiler.stage, self.target),
-            );
-        }
+        builder.ensure(dist::Clippy { compiler: self.compiler, target: self.target });
+        install_clippy(builder, self.compiler.stage, self.target);
     };
     Miri, "miri", Self::should_build(_config), only_hosts: true, {
-        if builder.ensure(dist::Miri { compiler: self.compiler, target: self.target }).is_some() ||
-            Self::should_install(builder) {
+        if builder.ensure(dist::Miri { compiler: self.compiler, target: self.target }).is_some() {
             install_miri(builder, self.compiler.stage, self.target);
         } else {
             builder.info(
@@ -241,7 +235,7 @@ install!((self, builder, _config),
         if builder.ensure(dist::Rustfmt {
             compiler: self.compiler,
             target: self.target
-        }).is_some() || Self::should_install(builder) {
+        }).is_some() {
             install_rustfmt(builder, self.compiler.stage, self.target);
         } else {
             builder.info(
@@ -261,7 +255,7 @@ install!((self, builder, _config),
     };
     Rustc, "src/librustc", true, only_hosts: true, {
         builder.ensure(dist::Rustc {
-            compiler: self.compiler,
+            compiler: builder.compiler(builder.top_stage, self.target),
         });
         install_rustc(builder, self.compiler.stage, self.target);
     };

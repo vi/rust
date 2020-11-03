@@ -12,7 +12,7 @@ fn ufcs_trait() {
 }
 
 fn ufcs_item() {
-    NonExistent::Assoc::<u8>; //~ ERROR undeclared type or module `NonExistent`
+    NonExistent::Assoc::<u8>; //~ ERROR undeclared type `NonExistent`
 }
 
 fn method() {
@@ -20,7 +20,7 @@ fn method() {
 }
 
 fn closure() {
-    let _ = |a, b: _| -> _ { 0 }; // OK
+    let _ = |a, b: _| -> _ { 0 }; //~ ERROR type annotations needed
 }
 
 fn main() {}

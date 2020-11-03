@@ -4,10 +4,10 @@
 #![feature(staged_api)]
 #[macro_use] extern crate unstable_macros;
 
-#[unstable(feature = "local_unstable", issue = "0")]
+#[unstable(feature = "local_unstable", issue = "none")]
 macro_rules! local_unstable { () => () }
 
-#[unstable(feature = "local_unstable", issue = "0")]
+#[unstable(feature = "local_unstable", issue = "none")]
 macro local_unstable_modern() {}
 
 #[stable(feature = "deprecated_macros", since = "1.0.0")]
@@ -22,7 +22,7 @@ fn main() {
     // unstable_macro_modern!(); // ERROR use of unstable library feature 'unstable_macros'
 
     deprecated_macro!();
-    //~^ WARN use of deprecated item 'deprecated_macro': deprecation reason
+    //~^ WARN use of deprecated macro `deprecated_macro`: deprecation reason
     local_deprecated!();
-    //~^ WARN use of deprecated item 'local_deprecated': local deprecation reason
+    //~^ WARN use of deprecated macro `local_deprecated`: local deprecation reason
 }

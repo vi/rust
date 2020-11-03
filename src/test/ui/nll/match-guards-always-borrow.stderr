@@ -1,10 +1,10 @@
 error[E0507]: cannot move out of `foo` in pattern guard
-  --> $DIR/match-guards-always-borrow.rs:10:14
+  --> $DIR/match-guards-always-borrow.rs:8:14
    |
 LL |             (|| { let bar = foo; bar.take() })();
    |              ^^             ---
    |              |              |
-   |              |              move occurs because `foo` has type `&mut std::option::Option<&i32>`, which does not implement the `Copy` trait
+   |              |              move occurs because `foo` has type `&mut Option<&i32>`, which does not implement the `Copy` trait
    |              |              move occurs due to use in closure
    |              move out of `foo` occurs here
    |
